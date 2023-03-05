@@ -20,6 +20,11 @@
         public int Age { get; set; }
 
         /// <summary>
+        /// Пол
+        /// </summary>
+        public string Sex { get; set; }
+
+        /// <summary>
         /// Интересы
         /// </summary>
         public string Biography { get; set; }

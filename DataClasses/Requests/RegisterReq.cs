@@ -13,6 +13,10 @@ namespace OtusSocialNetwork.DataClasses.Requests
         [Required]
         public int Age { get; set; }
 
+        [Required]
+        public string Sex { get; set; }
+
+        [Required]
         public string Biography { get; set; }
 
         [Required]
