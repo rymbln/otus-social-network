@@ -1,6 +1,6 @@
 -- public.account definition
 
-CREATE TABLE public.account (
+CREATE TABLE IF NOT EXISTS public.account (
 	id varchar NOT NULL,
 	"password" varchar NOT NULL,
 	CONSTRAINT account_pk PRIMARY KEY (id)
@@ -8,7 +8,7 @@ CREATE TABLE public.account (
 
 -- public."user" definition
 
-CREATE TABLE public."user" (
+CREATE TABLE IF NOT EXISTS public."user" (
 	id varchar NOT NULL,
 	first_name varchar NOT NULL,
 	second_name varchar NOT NULL,

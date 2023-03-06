@@ -1,18 +1,25 @@
-﻿version: "2.4"
+﻿version: "3.9"
 
 services:
   otus-db:
-    image: otus-db-image
+    image: postgres:14
     build:
       context: ./Postgres
       dockerfile: ./Dockerfile
     container_name: otus-db
+    environment:
+      POSTGRES_DB: "otusdb"
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "dbpassword"
+    mem_limit: 512m
     ports:
       - 5432:5432
     volumes:
+      - ./Postgres:/docker-entrypoint-initdb.d # Инициализация таблиц
       - ./volumes/Database/data:/var/lib/postgresql/data # Папка, где postgres будет хранить данные
       - ./volumes/Database/backups:/backups # Папка для бекапов
-
+    networks:
+      - otus-network
   otus-api:
     image: otus-api-image
     build:
