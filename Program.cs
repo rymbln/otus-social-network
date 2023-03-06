@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 
 using OtusSocialNetwork.Database;
 using OtusSocialNetwork.DataClasses.Internals;
+using OtusSocialNetwork.Filters;
 using OtusSocialNetwork.Middlewares;
 using OtusSocialNetwork.Services;
 
@@ -20,12 +21,16 @@ builder.Services.Configure<DatabaseSettings>(config.GetSection("DatabaseSettings
 builder.Services.AddScoped<IDatabaseContext, DatabaseContext>();
 builder.Services.AddSingleton<IPasswordService, PasswordService>();
 
-builder.Services.AddControllers().AddJsonOptions(options =>
+builder.Services.AddControllers(options =>
 {
-    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.Filters.Add(typeof(ValidateModelStateAttribute));
 });
+//    .AddJsonOptions(options =>
+//{
+//    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+//    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+//});
+
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.Configure<JWTSettings>(config.GetSection("JWTSettings"));
@@ -77,6 +82,10 @@ builder.Services.AddAuthentication(options =>
         // };
     });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy => policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -130,6 +139,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 app.UseMiddleware<ErrorHandlerMiddleware>();
+app.UseCors();
 app.MapControllers();
 
 app.Run();

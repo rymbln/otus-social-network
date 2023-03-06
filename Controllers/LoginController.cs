@@ -31,13 +31,8 @@ public class LoginController : ControllerBase
     }
     [AllowAnonymous]
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginReq data)
+    public async Task<IActionResult> Login([FromBody] LoginReq data)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest();
-        }
-
         var login = await _db.GetLoginAsync(data.Id);
         if (login.isSuccess)
         {

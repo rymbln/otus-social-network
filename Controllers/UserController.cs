@@ -27,13 +27,8 @@ public class UserController: ControllerBase
     }
     [AllowAnonymous]
     [HttpPost("user/register")]
-    public async Task<IActionResult> Register(RegisterReq data)
+    public async Task<IActionResult> Register([FromBody] RegisterReq data)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest();
-        }
-
         var user = _mapper.Map<UserEntity>(data);
 
         var password = _pass.HashPassword(data.Password);

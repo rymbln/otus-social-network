@@ -23,6 +23,7 @@ namespace OtusSocialNetwork.DataClasses.Requests
         public string City { get; set; }
 
         [Required]
+        [MinLength(6)]
         public string Password { get; set; }
 
     }
