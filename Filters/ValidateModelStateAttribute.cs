@@ -20,7 +20,11 @@ public class ValidateModelStateAttribute : ActionFilterAttribute
             var errors = new List<string>();
             foreach (var item in context.ModelState)
             {
-                errors.Add($"[{item.Key}]:{item.Value}");
+                if (item.Value.Errors.Count > 0)
+                {
+                    var err = item.Value.Errors.Select(x => x.ErrorMessage).Aggregate((x, y) => x + "; " + y);
+                    errors.Add($"[{item.Key}]:{err}");
+                }
             }
             var result = JsonSerializer.Serialize(new ErrorRes(errors.Aggregate((x,y)=> x + "; " + y)), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
             context.Result = new BadRequestObjectResult(new ErrorRes(errors.Aggregate((x, y) => x + "; " + y)));

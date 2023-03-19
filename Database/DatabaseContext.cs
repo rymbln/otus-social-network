@@ -92,4 +92,44 @@ public class DatabaseContext : IDatabaseContext, IDisposable
 
         return (false, "Not found", null);
     }
+
+    public async Task<(bool isSuccess, string msg, List<UserEntity> users)> SearchUserAsync(string firstName, string lastName)
+    {
+        await using var con = await db.OpenConnectionAsync();
+        var sql = "SELECT id, first_name, second_name, sex, age, city, biography\r\nFROM public.\"user\"\r\n";
+        var sqlConditions = new List<string>();
+        IEnumerable<UserEntity> items;
+        if (!string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName))
+        {
+            sql += "WHERE first_name LIKE @firstname AND second_name LIKE @secondname ORDER BY id;";
+            items = con.Query<UserEntity>(sql, new
+            {
+                @firstname = $"{firstName}%",
+                @secondname = $"{lastName}%",
+            });
+        }
+        else if (!string.IsNullOrEmpty(firstName))
+        {
+            sql += "WHERE first_name LIKE @firstname ORDER BY id;";
+            items = con.Query<UserEntity>(sql, new
+            {
+                @firstname = $"{firstName}%"
+            });
+        }
+        else if (!string.IsNullOrEmpty(lastName))
+        {
+            sql += "WHERE second_name LIKE @secondname ORDER BY id;";
+            items = con.Query<UserEntity>(sql, new
+            {
+                @secondname = $"{lastName}%"
+            });
+        }
+        else
+        {
+            sql += " ORDER BY id LIMIT 100;";
+            items = con.Query<UserEntity>(sql);
+        }
+
+        return (true, "OK", items.ToList());
+    }
 }

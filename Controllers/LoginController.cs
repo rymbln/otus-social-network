@@ -43,8 +43,11 @@ public class LoginController : ControllerBase
                 var token = new JwtSecurityTokenHandler().WriteToken(jwt);
                 return Ok(new LoginRes(token));
             }
+        } else
+        {
+            return BadRequest(login.msg);
         }
-        return Ok();
+        return BadRequest("No login");
     }
 
     private async Task<JwtSecurityToken> GenerateJWToken(string userId)
