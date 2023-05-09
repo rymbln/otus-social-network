@@ -34,6 +34,22 @@ touch pgslave-second-data/standby.signal
 
 Меняем postgresql.conf на реплике
 primary_conninfo = 'host=pgmaster port=5432 user=replicator password=reppassword application_name=pgslave'
+primary_conninfo = 'host=pgmaster port=5432 user=replicator password=reppassword application_name=pgslavesecond'
+
+Задаем настройки на мастере
+synchronous_commit = on
+synchronous_standby_names = 'FIRST 1 (pgslave, pgslavesecond)'
+
+Проверяем работу на мастере
+docker exec -it pgmaster su - postgres -c psql
+
+select application_name, sync_state from pg_stat_replication;
+
+postgres=# select application_name, sync_state from pg_stat_replication;
+ application_name | sync_state 
+------------------+------------
+ pgslave          | sync
+ pgslavesecond    | potential
 
 Запускаем реплику
 docker run -dit \

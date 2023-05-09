@@ -45,17 +45,34 @@ public class DatabaseContext : IDatabaseContext, IDisposable
 
     public async Task<(bool isSuccess, string msg, string userId)> AddNewTableRecordAsync(NewTableEntity user)
     {
-        await using var con = await db.OpenConnectionAsync();
-          await using var cmdAccount = new NpgsqlCommand("INSERT INTO public.newtable\r\n(person, age, city)\r\nVALUES(@person, @age, @city);\r\n", con)
+        // Check connection to master 
+        try
         {
-            Parameters =    {
+            await using var con = await db.OpenConnectionAsync();
+            await using var cmdAccount = new NpgsqlCommand("INSERT INTO public.newtable\r\n(person, age, city)\r\nVALUES(@person, @age, @city);\r\n", con)
+            {
+                Parameters =    {
                 new("person", user.Person),
                 new("age", user.Age),
                 new("city", user.City)
             }
-        };
-        await cmdAccount.ExecuteNonQueryAsync();
-        return (true, "OK", user.Person);
+            };
+            await cmdAccount.ExecuteNonQueryAsync();
+            return (true, "OK", user.Person);
+        } catch (Exception ex)
+        {
+            await using var con = await dbReplica.OpenConnectionAsync();
+            await using var cmdAccount = new NpgsqlCommand("INSERT INTO public.newtable\r\n(person, age, city)\r\nVALUES(@person, @age, @city);\r\n", con)
+            {
+                Parameters =    {
+                new("person", user.Person),
+                new("age", user.Age),
+                new("city", user.City)
+            }
+            };
+            await cmdAccount.ExecuteNonQueryAsync();
+            return (true, "OK", user.Person);
+        }
     }
     public async Task<(bool isSuccess, string msg, string userId)> RegisterAsync(UserEntity user, string password)
     {
@@ -105,7 +122,7 @@ public class DatabaseContext : IDatabaseContext, IDisposable
 
     public async Task<(bool isSuccess, string msg, UserEntity user)> GetUserAsync(string id)
     {
-        await using var con = await db.OpenConnectionAsync();
+        await using var con = await dbReplica.OpenConnectionAsync();
         var sql = "SELECT id, first_name, second_name, sex, age, city, biography\r\nFROM public.\"user\"\r\n WHERE id = @id LIMIT 1;";
         var items = con.Query<UserEntity>(sql, new { id = id });
         if (items.Count() > 0) { return (true, "OK", items.First()); }
@@ -115,7 +132,7 @@ public class DatabaseContext : IDatabaseContext, IDisposable
 
     public async Task<(bool isSuccess, string msg, List<UserEntity> users)> SearchUserAsync(string firstName, string lastName)
     {
-        await using var con = await db.OpenConnectionAsync();
+        await using var con = await dbReplica.OpenConnectionAsync();
         var sql = "SELECT id, first_name, second_name, sex, age, city, biography\r\nFROM public.\"user\"\r\n";
         var sqlConditions = new List<string>();
         IEnumerable<UserEntity> items;
