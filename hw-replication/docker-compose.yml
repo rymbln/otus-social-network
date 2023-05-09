@@ -1,0 +1,146 @@
+version: '2'
+networks:
+  monitor-net:
+    driver: bridge
+
+services:
+  
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    user: '104'
+    env_file: configuration.env
+    volumes:
+      - ./grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - 3000:3000
+    networks:
+      - monitor-net
+
+  # influxdb:
+  #   container_name: influxdb
+  #   image: docker.io/bitnami/influxdb:2
+  #   ports: 
+  #     - 8086:8086
+  #   env_file: configuration.env
+  #   volumes:
+  #     - ./influx-data:/var/lib/influxdb2
+  #   networks:
+  #     - monitor-net
+
+  # export INFLUX_TOKEN=M4k5B6gvVis7kGeNc05bUo6-GDA0-zLWrE-Gp7rVk3F1_mdvEewXxJ8CkvmysLN35BsEeIEjA_xBJ2OMBjs6ag==
+
+  # telegraf:
+  #   container_name: telegraf
+  #   image: telegraf
+  #   user: telegraf:998
+  #   # environment:
+  #   #   - INFLUX_TOKEN=aZK7ne1KnHoIvU1dWA_CCTmOknMsWmFbpwP1ko6x4HzGmNVIjxa_K_tUUOa1yOiLD-I6VlBxQ1RNCOvsnKzYwQ==
+  #   env_file: configuration.env
+  #   volumes:
+  #     - ./telegraf-data/telegraf.conf:/etc/telegraf/telegraf.conf
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   networks:
+  #     - monitor-net 
+  
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - monitor-net
+
+  cadvisor:
+    image: 'gcr.io/cadvisor/cadvisor'
+    container_name: cadvisor
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /var/lib/docker:/var/lib/docker:ro
+      - /sys:/sys:ro
+      - /dev/disk/:/dev/disk:ro
+      - /etc/machine-id:/etc/machine-id:ro
+      # - /mnt/windows_docker/:/rootfs/var/lib/docker:ro
+      # - /mnt/wsl/docker-desktop-data/data/docker:/rootfs/var/lib/docker:ro
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    ports:
+      - 8082:8080
+    networks:
+      - monitor-net
+
+  # postgres-exporter-master:
+  #   container_name: postgres-exporter-master
+  #   image: prometheuscommunity/postgres-exporter
+  #   ports:
+  #     - 9187:9187
+  #   environment:
+  #     DATA_SOURCE_NAME: "postgresql://postgres:docker@pgmaster:5432/postgres?sslmode=disable"
+  #   links:
+  #     - pgmaster
+  #     - pgslave
+  #     - prometheus
+  #   networks:
+  #     - monitor-net
+
+  # postgres-exporter-slave:
+  #   container_name: postgres-exporter-slave
+  #   image: prometheuscommunity/postgres-exporter
+  #   ports:
+  #     - 9188:9187
+  #   environment:
+  #     DATA_SOURCE_NAME: "postgresql://postgres:docker@pgslave:5432/postgres?sslmode=disable"
+  #   links:
+  #     - pgmaster
+  #     - pgslave
+  #     - prometheus
+  #   networks:
+  #     - monitor-net
+
+  pgmaster:
+    container_name: pgmaster
+    image: postgres:14
+    restart: unless-stopped
+    env_file: configuration.env
+    volumes:
+      - ./init-master:/docker-entrypoint-initdb.d
+      - ./pgmaster-data:/var/lib/postgresql/data
+      - ./pgmaster-backups:/backups
+    ports:
+      - 15432:5432
+    networks:
+      - monitor-net
+
+  pgslave:
+    container_name: pgslave
+    image: postgres:14
+    restart: unless-stopped
+    env_file: configuration.env
+    volumes:
+      - ./init-slave:/docker-entrypoint-initdb.d
+      - ./pgslave-data:/var/lib/postgresql/data
+      - ./pgslave-backups:/backups
+    ports:
+      - 25432:5432
+    networks:
+      - monitor-net
+
+  pgslavesecond:
+    container_name: pgslavesecond
+    image: postgres:14
+    restart: unless-stopped
+    env_file: configuration.env
+    volumes:
+      - ./init-slave:/docker-entrypoint-initdb.d
+      - ./pgslave-second-data:/var/lib/postgresql/data
+      - ./pgslave-second-backups:/backups
+    ports:
+      - 35432:5432
+    networks:
+      - monitor-net
