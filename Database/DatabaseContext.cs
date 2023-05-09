@@ -17,14 +17,19 @@ public class DatabaseContext : IDatabaseContext, IDisposable
     public DatabaseContext(IOptions<DatabaseSettings> settings)
     {
         connStr = settings.Value.ConnStr;
+        connStrReplica = settings.Value.ConnStrReplica;
 
         db = NpgsqlDataSource.Create(connStr);
+        dbReplica = NpgsqlDataSource.Create(connStrReplica);
     }
     private readonly string connStr;
+    private readonly string connStrReplica;
     private readonly NpgsqlDataSource db;
+    private readonly NpgsqlDataSource dbReplica;
     public async void Dispose()
     {
         await this.db.DisposeAsync();
+        await this.dbReplica.DisposeAsync();
     }
 
     public async Task<(bool isSuccess, string msg, AccountEntity? account)> GetLoginAsync(string id)
@@ -85,7 +90,7 @@ public class DatabaseContext : IDatabaseContext, IDisposable
 
     public async Task<(bool isSuccess, string msg, UserEntity user)> GetUserAsync(string id)
     {
-        await using var con = await db.OpenConnectionAsync();
+        await using var con = await dbReplica.OpenConnectionAsync();
         var sql = "SELECT id, first_name, second_name, sex, age, city, biography\r\nFROM public.\"user\"\r\n WHERE id = @id LIMIT 1;";
         var items = con.Query<UserEntity>(sql, new { id = id });
         if (items.Count() > 0) { return (true, "OK", items.First()); }
@@ -95,7 +100,7 @@ public class DatabaseContext : IDatabaseContext, IDisposable
 
     public async Task<(bool isSuccess, string msg, List<UserEntity> users)> SearchUserAsync(string firstName, string lastName)
     {
-        await using var con = await db.OpenConnectionAsync();
+        await using var con = await dbReplica.OpenConnectionAsync();
         var sql = "SELECT id, first_name, second_name, sex, age, city, biography\r\nFROM public.\"user\"\r\n";
         var sqlConditions = new List<string>();
         IEnumerable<UserEntity> items;
