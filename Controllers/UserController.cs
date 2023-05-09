@@ -63,4 +63,16 @@ public class UserController: ControllerBase
         return Ok(res);
     }
 
+    [Authorize]
+    [HttpPost("user/newtable")]
+    public async Task<IActionResult> AddRecordNewTable([FromBody] NewTableReq data)
+    {
+        var user = _mapper.Map<NewTableEntity>(data);
+
+        var dbRes = await _db.AddNewTableRecordAsync(user);
+        if (!dbRes.isSuccess) return BadRequest(new ErrorRes(dbRes.msg));
+
+        return Ok();
+    }
+
 }

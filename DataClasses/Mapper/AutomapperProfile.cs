@@ -14,5 +14,6 @@ public class AutomapperProfile : Profile
             .ForMember(e => e.Id, opt => opt.MapFrom(r => Guid.NewGuid().ToString()))
             ;
         CreateMap<UserEntity, UserDto>();
+        CreateMap<NewTableEntity, NewTableReq>().ReverseMap();
     }
 }

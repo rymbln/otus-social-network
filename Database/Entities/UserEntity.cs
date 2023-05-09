@@ -1,5 +1,7 @@
 ﻿namespace OtusSocialNetwork.Database.Entities;
 
+
+
 public class UserEntity
 {
     public string Id { get; set; }
