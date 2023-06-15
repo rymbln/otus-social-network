@@ -1,0 +1,8 @@
+<ng-container *ngIf="items$ | async as items" >
+  <p-menubar [model]="items "></p-menubar>
+</ng-container>
+<main>
+  <div class="flex w-full flex-column gap-3 justify-content-center">
+    <router-outlet></router-outlet>
+  </div>
+</main>

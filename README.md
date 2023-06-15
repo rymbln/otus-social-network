@@ -9,3 +9,10 @@
 4. Логинимся с полученным id. Запрос `Login`. Получаем токен авторизации
 5. Получаем информацию о пользователе. Запрос `Get user by id`.
 
+--- 
+
+docker-compose up otus-db -d
+
+cp ./Postgres/20230501-otusdb.sql ./volumes/Database/backups
+
+docker exec -t otus-db psql -U dbuser -d otusdb -f /backups/20230501-otusdb.sql

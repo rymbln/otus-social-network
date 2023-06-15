@@ -20,7 +20,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<DatabaseSettings>(config.GetSection("DatabaseSettings"));
 builder.Services.AddScoped<IDatabaseContext, DatabaseContext>();
 builder.Services.AddSingleton<IPasswordService, PasswordService>();
-
+builder.Services.AddScoped<IAuthenticatedUserService, AuthenticatedUserService>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add(typeof(ValidateModelStateAttribute));
