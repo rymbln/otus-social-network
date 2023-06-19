@@ -54,13 +54,16 @@ public class LoginController : ControllerBase
     {
         var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
         var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
+        var claims = new List<Claim> { new Claim("uid", userId) };
 
         var jwtSecurityToken = new JwtSecurityToken(
+            claims: claims,
             issuer: _jwtSettings.Issuer,
             audience: _jwtSettings.Audience,
             notBefore: DateTime.UtcNow,
             expires: DateTime.UtcNow.AddMinutes(_jwtSettings.DurationInMinutes),
-            signingCredentials: signingCredentials);
+            signingCredentials: signingCredentials) ;
+        
         return jwtSecurityToken;
     }
 }

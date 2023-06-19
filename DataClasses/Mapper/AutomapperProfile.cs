@@ -15,5 +15,9 @@ public class AutomapperProfile : Profile
             ;
         CreateMap<UserEntity, UserDto>();
         CreateMap<NewTableEntity, NewTableReq>().ReverseMap();
+        CreateMap<PostEntity, PostDto>()
+            .ForMember(d => d.Text, opt => opt.MapFrom(e => e.Text))
+            .ForMember(d => d.AuthorUserId, opt => opt.MapFrom(e => e.AuthorUserId))
+            ;
     }
 }

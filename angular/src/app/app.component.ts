@@ -22,6 +22,21 @@ export class AppComponent {
           routerLink: ['/']
         });
         items.push({
+          label: 'Feed',
+          icon: 'pi pi-list',
+          routerLink: ['/feed']
+        });
+        items.push({
+          label: 'Posts',
+          icon: 'pi pi-file',
+          routerLink: ['/posts']
+        });
+        items.push({
+          label: 'Friends',
+          icon: 'pi pi-users',
+          routerLink: ['/friends']
+        });
+        items.push({
           label: 'Logout',
           icon: 'pi pi-sign-out',
           command: () => {
@@ -60,5 +75,7 @@ export class AppComponent {
 
   }
 
-  logout() { }
+  logout() {
+    this.auth.logout();
+  }
 }

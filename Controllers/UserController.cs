@@ -19,11 +19,13 @@ public class UserController: ControllerBase
     private readonly IDatabaseContext _db;
     private readonly IMapper _mapper;
     private readonly IPasswordService _pass;
-    public UserController(IDatabaseContext db, IMapper mapper, IPasswordService pass)
+    private readonly IAuthenticatedUserService _auth;
+    public UserController(IDatabaseContext db, IMapper mapper, IPasswordService pass, IAuthenticatedUserService auth)
     {
         _db = db;
         _mapper = mapper;
         _pass = pass;
+        _auth = auth;
     }
     [AllowAnonymous]
     [HttpPost("user/register")]
@@ -46,6 +48,19 @@ public class UserController: ControllerBase
     public async Task<IActionResult> GetUser(Guid id)
     {
         var dbRes = await _db.GetUserAsync(id.ToString());
+        if (!dbRes.isSuccess) return BadRequest(new ErrorRes(dbRes.msg));
+
+        var res = _mapper.Map<UserDto>(dbRes.user);
+        return Ok(res);
+    }
+
+    [Authorize]
+    [HttpGet("user/profile")]
+    public async Task<IActionResult> GetProfile()
+    {
+        if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest(new ErrorRes("Empty"));
+
+        var dbRes = await _db.GetUserAsync(_auth.UserId);
         if (!dbRes.isSuccess) return BadRequest(new ErrorRes(dbRes.msg));
 
         var res = _mapper.Map<UserDto>(dbRes.user);

@@ -1,11 +1,16 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
-import { AppRoutingModule } from './app-routing.module';
+import { AppRoutingModule } from './app.routing';
 import { AppComponent } from './app.component';
 
 import { MenubarModule } from 'primeng/menubar';
 import { CheckboxModule } from 'primeng/checkbox';
+import { CardModule } from 'primeng/card';
+import { ToolbarModule } from 'primeng/toolbar';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextareaModule } from 'primeng/inputtextarea';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 import { LoginComponent } from './login/login.component';
 import { EmptyComponent } from './empty/empty.component';
@@ -15,10 +20,15 @@ import { AuthService } from './auth.service';
 import { InputTextModule } from 'primeng/inputtext';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { JwtInterceptor } from './shared/jwt.interceptor';
-import { AuthInterceptor } from './shared/auth.interceptor';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { PostsComponent } from './posts/posts.component';
 import { ProfileComponent } from './profile/profile.component';
+import { UserService } from './user.service';
+import { PostService } from './post.service';
+import { AuthGuard } from './shared/auth.guard';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ConfirmationService } from 'primeng/api';
+import { ErrorInterceptor } from './shared/error.interceptor';
 
 @NgModule({
   declarations: [
@@ -31,6 +41,7 @@ import { ProfileComponent } from './profile/profile.component';
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     AppRoutingModule,
     HttpClientModule,
     FormsModule,
@@ -38,13 +49,20 @@ import { ProfileComponent } from './profile/profile.component';
     MenubarModule,
     CheckboxModule,
     ButtonModule,
-    InputTextModule
+    InputTextModule,
+    CardModule,
+    ToolbarModule,
+    DialogModule,
+    InputTextareaModule,
+    ConfirmDialogModule
   ],
   providers: [
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    AuthGuard,
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
     { provide: 'LOCALSTORAGE', useValue: window.localStorage },
-    AuthService],
+    AuthService, UserService, PostService,
+    ConfirmationService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

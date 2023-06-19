@@ -1,3 +1,8 @@
 <div class="grid" *ngIf="isAuth$ | async">
 
+  <div class="col-12" *ngIf="user$ | async as user">
+    <p-card [header]="user.first_name + ' ' + user.second_name + '(' + user.age +')'" [subheader]="user.city">
+      {{ user.biography }}
+    </p-card>
+  </div>
 </div>

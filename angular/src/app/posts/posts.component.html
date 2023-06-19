@@ -1,1 +1,37 @@
-<p>posts works!</p>
+<div class="grid">
+  <div class="col-12">
+    <p-toolbar>
+      <div class="p-toolbar-group-start">
+        <p-button label="New" icon="pi pi-plus" (click)="onNew()"></p-button>
+        <!-- <p-button label="Upload" icon="pi pi-upload" styleClass="p-button-success"></p-button>
+        <i class="p-toolbar-separator pi pi-bars mr-2" style="vertical-align: middle"></i>
+        <p-splitButton label="Save" icon="pi pi-check" [model]="items" styleClass="p-button-warning"></p-splitButton> -->
+    </div>
+    <div class="p-toolbar-group-end">
+      <p-button label="Refresh" icon="pi pi-refresh" (click)="onRefresh()"></p-button>
+    </div>
+    </p-toolbar>
+  </div>
+
+  <div class="col-12">
+    <div class="flex flex-column gap-3" *ngIf="posts$ | async as posts">
+
+      <p-card *ngFor="let post of posts" [header]="post.id" subheader="{{ post.timeStamp + 'Z' | date: 'MMM d, y, h:mm:ss a' }}">
+        {{ post.text}}
+        <ng-template pTemplate="footer">
+          <p-button icon="pi pi-pencil" (click)="onEdit(post)" label="Edit" styleClass="p-button-warning mr-1"></p-button>
+          <p-button icon="pi pi-trash" (click)="onDelete(post)" label="Delete" styleClass="p-button-danger"></p-button>
+        </ng-template>
+      </p-card>
+    </div>
+  </div>
+
+</div>
+
+
+<p-dialog header="Header" [(visible)]="isNewPostDialog" [style]="{width: '50vw'}" [maximizable]="true">
+  <textarea rows="5" cols="30" class="w-full" pInputTextarea [(ngModel)]="newPostText"></textarea>
+  <ng-template pTemplate="footer">
+    <p-button icon="pi pi-check" (click)="onSave()" label="Save" styleClass="p-button-text"></p-button>
+</ng-template>
+</p-dialog>

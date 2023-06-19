@@ -56,33 +56,32 @@ builder.Services.AddAuthentication(options =>
             RequireExpirationTime = true,
             ClockSkew = TimeSpan.Zero,
         };
-        // o.Events = new JwtBearerEvents()
-        // {
-        //     OnAuthenticationFailed = c =>
-        //     {
-        //         c.NoResult();
-        //         c.Response.StatusCode = 401;
-        //         c.Response.ContentType = "text/plain";
-        //         return c.Response.WriteAsync(c.Exception.ToString());
-        //     },
-        //     // OnChallenge = context =>
-        //     // {
-        //     //     context.HandleResponse();
-        //     //     // context.Response.StatusCode = 401;
-        //     //     // context.Response.ContentType = "application/json";
-        //     //     var result = JsonConvert.SerializeObject(new Response<string>("You are not Authorized"));
-        //     //     return context.Response.WriteAsync(result);
-        //     // },
-        //     OnForbidden = context =>
-        //     {
-        //         context.Response.StatusCode = 403;
-        //         context.Response.ContentType = "application/json";
-        //         var result = JsonConvert.SerializeObject(new Response<string>("You are not authorized to access this resource"));
-        //         return context.Response.WriteAsync(result);
-        //     },
-        // };
+        o.Events = new JwtBearerEvents()
+        {
+            OnAuthenticationFailed = c =>
+            {
+                c.NoResult();
+                c.Response.StatusCode = 401;
+                c.Response.ContentType = "text/plain";
+                return c.Response.WriteAsync(c.Exception.ToString());
+            },
+            // OnChallenge = context =>
+            // {
+            //     context.HandleResponse();
+            //     // context.Response.StatusCode = 401;
+            //     // context.Response.ContentType = "application/json";
+            //     var result = JsonConvert.SerializeObject(new Response<string>("You are not Authorized"));
+            //     return context.Response.WriteAsync(result);
+            // },
+            OnForbidden = context =>
+            {
+                context.Response.StatusCode = 403;
+                context.Response.ContentType = "application/json";
+                var result = JsonSerializer.Serialize("You are not authorized to access this resource");
+                return context.Response.WriteAsync(result);
+            },
+        };
     });
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy => policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());

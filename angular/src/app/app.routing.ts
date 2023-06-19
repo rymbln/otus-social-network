@@ -4,12 +4,19 @@ import { EmptyComponent } from './empty/empty.component';
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
 import { ProfileComponent } from './profile/profile.component';
+import { PostsComponent } from './posts/posts.component';
+import { AuthGuard } from './shared/auth.guard';
 
 const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    component: ProfileComponent
+    component: ProfileComponent,
+  },
+  {
+    path: 'posts',
+    component: PostsComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'login',

@@ -212,7 +212,7 @@ public class DatabaseContext : IDatabaseContext, IDisposable
     {
         await using var con = await db.OpenConnectionAsync();
 
-        var sql = "SELECT id, author_user_id, post_text, \"timestamp\"\nFROM public.posts where author_user_id = @userId;\n";
+        var sql = "SELECT id, author_user_id as AuthorUserId, post_text as Text, \"timestamp\"\nFROM public.posts where author_user_id = @userId;\n";
         var items = await con.QueryAsync<PostEntity>(sql, new { userId = userId });
         return (true, "OK", items.ToList());
     }
@@ -220,14 +220,14 @@ public class DatabaseContext : IDatabaseContext, IDisposable
     public async Task<(bool isSuccess, string msg)> UpdatePost(string id, string userId, string text)
     {
         await using var con = await db.OpenConnectionAsync();
-        var sql = "SELECT id from pulic.posts where id = @id and author_user_id = @userId";
-        var postId = await con.ExecuteScalarAsync<string>(sql);
+        var sql = "SELECT id from public.posts where id = @id and author_user_id = @userId";
+        var postId = await con.ExecuteScalarAsync<string>(sql, new { id = id, userId = userId } );
         if (string.IsNullOrEmpty(postId)) return (false, "Not found");
 
         // Create account
         await using var cmd = new NpgsqlCommand(@"UPDATE public.posts
-    SET  post_text=@text, ""timestamp""=@timestamp
-    WHERE id = @id and account_user_id = @userId;
+    SET  post_text=@text, timestamp=@timestamp
+    WHERE id = @id and author_user_id = @userId;
 
     ", con)
         {
@@ -248,12 +248,12 @@ public class DatabaseContext : IDatabaseContext, IDisposable
     public async Task<(bool isSuccess, string msg)> DeletePost(string id, string userId)
     {
         await using var con = await db.OpenConnectionAsync();
-        var sql = "SELECT id from pulic.posts where id = @id and author_user_id = @userId";
-        var postId = await con.ExecuteScalarAsync<string>(sql);
+        var sql = "SELECT id from public.posts where id = @id and author_user_id = @userId";
+        var postId = await con.ExecuteScalarAsync<string>(sql, new { id = id, userId = userId});
         if (string.IsNullOrEmpty(postId)) return (false, "Not found");
 
         await using var cmd = new NpgsqlCommand(@"DELETE FROM public.posts 
-    WHERE id = @id and account_user_id = @userId;
+    WHERE id = @id and author_user_id = @userId;
     ", con)
         {
             Parameters =

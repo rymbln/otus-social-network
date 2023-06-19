@@ -1,1 +1,59 @@
-<p>register works!</p>
+<div class="flex justify-content-center">
+
+  <div *ngIf="isReady"  class="surface-card p-4 shadow-2 border-round w-full lg:w-6">
+    <form [formGroup]="form" (ngSubmit)="submit(form)">
+      <div class="formgrid grid">
+        <div class="field md:col-6 col-12">
+          <label for="first_name">First name</label>
+          <input id="first_name" type="text" placeholder="first_name" pInputText formControlName="first_name"
+            class="w-full mb-3">
+          <small id="first_name-help" class="p-error"
+            *ngIf="hasErr(form.controls['first_name'], 'required')">Required</small>
+        </div>
+
+        <div class="field md:col-6 col-12">
+          <label for="second_name">Second name</label>
+          <input id="second_name" type="text" placeholder="second_name" pInputText formControlName="second_name"
+            class="w-full mb-3">
+          <small id="second_name-help" class="p-error"
+            *ngIf="hasErr(form.controls['second_name'], 'required')">Required</small>
+        </div>
+
+        <div class="field md:col-6 col-12">
+          <label for="age">Age</label>
+          <input id="age" type="text" placeholder="age" pInputText formControlName="age" class="w-full mb-3">
+          <small id="age-help" class="p-error" *ngIf="hasErr(form.controls['age'], 'required')">Required</small>
+        </div>
+
+        <div class="field md:col-6 col-12">
+          <label for="sex">Sex</label>
+          <input id="sex" type="text" placeholder="sex" pInputText formControlName="sex" class="w-full mb-3">
+          <small id="sex-help" class="p-error" *ngIf="hasErr(form.controls['sex'], 'required')">Required</small>
+        </div>
+
+        <div class="field flex flex-column col-12">
+          <label for="biography">Biography</label>
+          <textarea id="biography" pInputTextarea placeholder="Bio" formControlName="biography"></textarea>
+        </div>
+
+        <div class="field col-12">
+          <label for="city">City</label>
+          <input id="city" type="text" placeholder="city" pInputText formControlName="city" class="w-full mb-3">
+          <small id="city-help" class="p-error" *ngIf="hasErr(form.controls['city'], 'required')">Required</small>
+        </div>
+
+        <div class="field col-12">
+          <label for="password">Password</label>
+          <input id="password" type="text" placeholder="password" pInputText formControlName="password"
+            class="w-full mb-3">
+          <small id="password-help" class="p-error"
+            *ngIf="hasErr(form.controls['password'], 'required')">Required</small>
+        </div>
+
+        <div class="col-12">
+          <p-button (click)="submit(form)" styleClass="p-button-rounded w-full" label="Register"></p-button>
+        </div>
+      </div>
+    </form>
+
+  </div>

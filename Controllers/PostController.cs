@@ -1,32 +1,53 @@
 ﻿using System;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OtusSocialNetwork.Database;
+using OtusSocialNetwork.DataClasses.Dtos;
 using OtusSocialNetwork.DataClasses.Requests;
+using OtusSocialNetwork.DataClasses.Responses;
 using OtusSocialNetwork.Services;
 
 namespace OtusSocialNetwork.Controllers;
 
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 [ApiController]
+[Route("post")]
 public class PostController : ControllerBase
 {
 	private readonly IAuthenticatedUserService _auth;
 	private readonly IDatabaseContext _db;
-	public PostController(IAuthenticatedUserService auth, IDatabaseContext db)
+	private readonly IMapper _mapper;
+	public PostController(IAuthenticatedUserService auth, IDatabaseContext db, IMapper mapper)
 	{
 		_auth = auth;
 		_db = db;
+		_mapper = mapper;
 	}
+
+	[HttpGet]
+	public async Task<IActionResult> GetPosts()
+	{
+        if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");
+
+        var dbRes = await _db.GetPosts(_auth.UserId);
+        if (!dbRes.isSuccess) return BadRequest(new ErrorRes(dbRes.msg));
+        
+        var res = _mapper.Map<List<PostDto>>(dbRes.posts);
+		return Ok(res);
+    }
 
 	[HttpGet("{id}")]
 	public async Task<IActionResult> GetPost(string id)
 	{
         if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");
 
-		var res = await _db.GetPost(id, _auth.UserId);
-        return res.isSuccess ? Ok(res.post) : BadRequest(res.msg);
+		var dbRes = await _db.GetPost(id, _auth.UserId);
+        if (!dbRes.isSuccess) return BadRequest(new ErrorRes(dbRes.msg));
+
+        var res = _mapper.Map<PostDto>(dbRes.post);
+        return Ok(res);
     }
 
 	[HttpPost("create")]
@@ -35,8 +56,9 @@ public class PostController : ControllerBase
 		if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");
 
 		var res = await _db.CreatePost(req.Text, _auth.UserId);
+        if (!res.isSuccess) return BadRequest(new ErrorRes(res.msg));
 
-		return res.isSuccess ? Ok(res.msg) : BadRequest(res.msg);
+		return Ok(new DefaultRes(res.msg));
 	}
 
 	[HttpPut("update")]
@@ -45,9 +67,10 @@ public class PostController : ControllerBase
 		if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");
 
 		var res = await _db.UpdatePost(req.Id, _auth.UserId, req.Text);
+        if (!res.isSuccess) return BadRequest(new ErrorRes(res.msg));
 
-		return res.isSuccess ? Ok(res.msg) : BadRequest(res.msg);
-	}
+        return Ok(new DefaultRes(res.msg));
+    }
 
 	[HttpDelete("{id}")]
 	public async Task<IActionResult> DeletePost(string id)
@@ -55,8 +78,9 @@ public class PostController : ControllerBase
         if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");
 
 		var res = await _db.DeletePost(id, _auth.UserId);
+        if (!res.isSuccess) return BadRequest(new ErrorRes(res.msg));
 
-        return res.isSuccess ? Ok(res.msg) : BadRequest(res.msg);
+        return Ok(new DefaultRes(res.msg));
     }
 }
 
