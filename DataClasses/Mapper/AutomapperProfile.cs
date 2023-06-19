@@ -19,5 +19,7 @@ public class AutomapperProfile : Profile
             .ForMember(d => d.Text, opt => opt.MapFrom(e => e.Text))
             .ForMember(d => d.AuthorUserId, opt => opt.MapFrom(e => e.AuthorUserId))
             ;
+
+        CreateMap<FriendView, FriendDto>();
     }
 }

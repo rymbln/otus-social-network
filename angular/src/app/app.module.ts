@@ -29,6 +29,8 @@ import { AuthGuard } from './shared/auth.guard';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ConfirmationService } from 'primeng/api';
 import { ErrorInterceptor } from './shared/error.interceptor';
+import { FriendService } from './friend.service';
+import { FriendsComponent } from './friends/friends.component';
 
 @NgModule({
   declarations: [
@@ -37,7 +39,8 @@ import { ErrorInterceptor } from './shared/error.interceptor';
     EmptyComponent,
     RegisterComponent,
     PostsComponent,
-    ProfileComponent
+    ProfileComponent,
+    FriendsComponent
   ],
   imports: [
     BrowserModule,
@@ -61,7 +64,7 @@ import { ErrorInterceptor } from './shared/error.interceptor';
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
     { provide: 'LOCALSTORAGE', useValue: window.localStorage },
-    AuthService, UserService, PostService,
+    AuthService, UserService, PostService, FriendService,
     ConfirmationService],
   bootstrap: [AppComponent]
 })

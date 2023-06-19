@@ -15,6 +15,7 @@ export class ErrorInterceptor implements HttpInterceptor {
         return next.handle(request).pipe(
           catchError(err => {
             console.log('err intercept');
+            console.log(err);
             if (err.status == 401) {
               console.log('err intercept 401');
                 // auto logout if 401 or 403 response returned from api

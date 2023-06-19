@@ -6,6 +6,7 @@ import { RegisterComponent } from './register/register.component';
 import { ProfileComponent } from './profile/profile.component';
 import { PostsComponent } from './posts/posts.component';
 import { AuthGuard } from './shared/auth.guard';
+import { FriendsComponent } from './friends/friends.component';
 
 const routes: Routes = [
   {
@@ -16,6 +17,11 @@ const routes: Routes = [
   {
     path: 'posts',
     component: PostsComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'friends',
+    component: FriendsComponent,
     canActivate: [AuthGuard]
   },
   {

@@ -266,5 +266,67 @@ public class DatabaseContext : IDatabaseContext, IDisposable
         await cmd.ExecuteNonQueryAsync();
         return (true, "OK");
     }
-#endregion
+    #endregion
+
+    #region Friends
+    public async Task<(bool isSuccess, string msg)> AddFriend(string userId, string friendId)
+    {
+        await using var con = await db.OpenConnectionAsync();
+        await using var cmd = new NpgsqlCommand(@"INSERT INTO public.friends
+                                                    (user_id, friend_id)
+                                                    VALUES(@userId,@friendId);
+                                                    ;
+    ", con)
+        {
+            Parameters =
+                {
+                    new("friendId", friendId),
+                    new("userId", userId)
+                }
+        };
+
+        await cmd.ExecuteNonQueryAsync();
+        return (true, "OK");
+    }
+
+    public async Task<(bool isSuccess, string msg)> DeleteFriend(string userId, string friendId)
+    {
+        await using var con = await db.OpenConnectionAsync();
+        await using var cmd = new NpgsqlCommand(@"DELETE FROM public.friends WHERE user_id=@userId AND friend_id=@friendId;", con)
+        {
+            Parameters =
+                {
+                    new("userId", userId),
+                    new("friendId", friendId)
+                }
+        };
+
+        await cmd.ExecuteNonQueryAsync();
+        return (true, "OK");
+        
+    }
+
+    public async Task<(bool isSuccess, string msg, List<FriendView> data)> GetFriends(string userId)
+    {
+        await using var con = await db.OpenConnectionAsync();
+        var sql = "select f.friend_id  as id, concat(u.first_name , ' ' , u.second_name) as fullname " +
+            "from friends f " +
+            "inner join \"user\" u on f.friend_id  = u.id " +
+            "where user_id = @userId;";
+        var items = await con.QueryAsync<FriendView>(sql, new { userId = userId });
+        return (true, "OK", items.ToList());
+    }
+
+    public async Task<(bool isSuccess, string msg, List<FriendView> data)> SearchFriends(string query)
+    {
+        await using var con = await db.OpenConnectionAsync();
+      
+        var sql = "SELECT id, concat(first_name , ' ' , second_name) as fullname " +
+            "FROM public.\"user\"" +
+            "where concat(first_name , ' ' , second_name) ilike '%" + query + "%' " +
+            "order by concat(first_name , ' ' , second_name);";
+        var items = await con.QueryAsync<FriendView>(sql, new { query = query });
+        return (true, "OK", items.ToList());
+    }
+    #endregion
 }

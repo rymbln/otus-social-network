@@ -18,4 +18,9 @@ public interface IDatabaseContext
     Task<(bool isSuccess, string msg)> CreatePost(string text, string userId);
     Task<(bool isSuccess, string msg, List<PostEntity> posts)> GetPosts(string userId);
     Task<(bool isSuccess, string msg, PostEntity post)> GetPost(string id, string userId);
+
+    Task<(bool isSuccess, string msg, List<FriendView> data)> GetFriends(string userId);
+    Task<(bool isSuccess, string msg, List<FriendView> data)> SearchFriends(string query);
+    Task<(bool isSuccess, string msg)> DeleteFriend(string userId, string friendId);
+    Task<(bool isSuccess, string msg)> AddFriend(string userId, string friendId);
 }

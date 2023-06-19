@@ -34,3 +34,22 @@ CREATE INDEX posts_author_user_id_idx ON public.posts USING btree (author_user_i
 -- public.posts foreign keys
 
 ALTER TABLE public.posts ADD CONSTRAINT posts_fk FOREIGN KEY (author_user_id) REFERENCES public."user"(id);
+
+
+-- public.friends definition
+
+-- Drop table
+
+-- DROP TABLE public.friends;
+
+CREATE TABLE public.friends (
+	user_id varchar NOT NULL,
+	friend_id varchar NOT NULL,
+	CONSTRAINT friends_pk PRIMARY KEY (user_id, friend_id)
+);
+
+
+-- public.friends foreign keys
+
+ALTER TABLE public.friends ADD CONSTRAINT friends_fk FOREIGN KEY (user_id) REFERENCES public."user"(id);
+ALTER TABLE public.friends ADD CONSTRAINT friends_fk_1 FOREIGN KEY (friend_id) REFERENCES public."user"(id);

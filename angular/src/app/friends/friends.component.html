@@ -1,0 +1,22 @@
+<div class="grid">
+  <div class="col-12 md:col-6">
+    <h4>Search</h4>
+    <div class="flex align-items-center justify-content-between">
+      <input id="search" type="text" placeholder="Search" pInputText [(ngModel)]="query" class="w-full">
+      <p-button icon="pi pi-search" (click)="onSearch(query)" label="Search"></p-button>
+    </div>
+      <div class="flex flex-column gap-2 mt-3">
+        <div class="flex align-items-center justify-content-between" *ngFor="let friend of searchResults$ | async">
+          <div>{{ friend.fullName }}</div>
+          <p-button icon="pi pi-plus" (click)="onAdd(friend)" label="Add"></p-button>
+        </div>
+      </div>
+  </div>
+  <div class="col-12 md:col-6">
+    <h4>Friends</h4>
+    <div class="flex align-items-center justify-content-between" *ngFor="let friend of friends$ | async">
+      <div>{{ friend.fullName }}</div>
+      <p-button icon="pi pi-trash" (click)="onDelete(friend)" label="Delete" styleClass="p-button-danger"></p-button>
+    </div>
+  </div>
+</div>
