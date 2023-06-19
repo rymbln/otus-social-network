@@ -7,6 +7,7 @@ import { ProfileComponent } from './profile/profile.component';
 import { PostsComponent } from './posts/posts.component';
 import { AuthGuard } from './shared/auth.guard';
 import { FriendsComponent } from './friends/friends.component';
+import { FeedComponent } from './feed/feed.component';
 
 const routes: Routes = [
   {
@@ -22,6 +23,11 @@ const routes: Routes = [
   {
     path: 'friends',
     component: FriendsComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'feed',
+    component: FeedComponent,
     canActivate: [AuthGuard]
   },
   {

@@ -31,6 +31,7 @@ import { ConfirmationService } from 'primeng/api';
 import { ErrorInterceptor } from './shared/error.interceptor';
 import { FriendService } from './friend.service';
 import { FriendsComponent } from './friends/friends.component';
+import { FeedComponent } from './feed/feed.component';
 
 @NgModule({
   declarations: [
@@ -40,7 +41,8 @@ import { FriendsComponent } from './friends/friends.component';
     RegisterComponent,
     PostsComponent,
     ProfileComponent,
-    FriendsComponent
+    FriendsComponent,
+    FeedComponent
   ],
   imports: [
     BrowserModule,

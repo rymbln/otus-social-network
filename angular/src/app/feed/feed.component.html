@@ -1,0 +1,21 @@
+<div class="grid">
+  <div class="col-12">
+    <p-toolbar>
+      <div class="p-toolbar-group-start">
+
+    </div>
+    <div class="p-toolbar-group-end">
+      <p-button label="Refresh" icon="pi pi-refresh" (click)="onRefresh()"></p-button>
+    </div>
+    </p-toolbar>
+  </div>
+
+  <div class="col-12">
+    <div class="flex flex-column gap-3" *ngIf="posts$ | async as posts">
+
+      <p-card *ngFor="let post of posts" [header]="post.friendName" subheader="{{ post.timestamp + 'Z' | date: 'MMM d, y, h:mm:ss a' }}">
+        {{ post.postText}}
+      </p-card>
+    </div>
+  </div>
+</div>

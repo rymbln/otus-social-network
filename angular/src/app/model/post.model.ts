@@ -5,3 +5,11 @@ export interface PostDto {
   text: string;
   timeStamp: string;
 }
+
+export interface PostView {
+  postId: string;
+  postText: string;
+  timestamp: string;
+  friendId: string;
+  friendName: string;
+}

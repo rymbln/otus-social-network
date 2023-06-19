@@ -328,5 +328,25 @@ public class DatabaseContext : IDatabaseContext, IDisposable
         var items = await con.QueryAsync<FriendView>(sql, new { query = query });
         return (true, "OK", items.ToList());
     }
+
+    public async Task<(bool isSuccess, string msg, List<PostView> posts)> GetFeed(string userId, int limit)
+    {
+        await using var con = await db.OpenConnectionAsync();
+
+        var sql = """
+                        select p.id as post_id,
+            p.post_text, p."timestamp" ,
+            f.friend_id, 
+            concat(u.first_name , ' ' , u.second_name) friend_name
+            from public.posts p 
+            inner join friends f on f.friend_id  = p.author_user_id 
+            inner join "user" u on f.friend_id  = u.id  
+            where f.user_id  = @userId
+            order by p."timestamp" desc limit @limit
+            """;
+
+        var items = await con.QueryAsync<PostView>(sql, new { userId = userId, limit = limit });
+        return (true, "OK", items.ToList());
+    }
     #endregion
 }

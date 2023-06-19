@@ -38,6 +38,17 @@ public class PostController : ControllerBase
 		return Ok(res);
     }
 
+	[HttpGet("feed")]
+	public async Task<IActionResult> GetFeed()
+	{
+        if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");
+
+		var res = await _db.GetFeed(_auth.UserId, 1000);
+        if (!res.isSuccess) return BadRequest(new ErrorRes(res.msg));
+
+		return Ok(res.posts);
+    }
+
 	[HttpGet("{id}")]
 	public async Task<IActionResult> GetPost(string id)
 	{

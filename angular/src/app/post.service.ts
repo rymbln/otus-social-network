@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { PostDto } from './model/post.model';
+import { PostDto, PostView } from './model/post.model';
 import { environment } from 'src/environments/environment';
 import { CreatePostReq } from './model/create-post.req';
 import { UpdatePostReq } from './model/update-post.req';
@@ -18,6 +18,9 @@ export class PostService {
   }
   getPost(id: string) {
     return this._http.get<PostDto>(`${environment.api}/post/${id}`);
+  }
+  getFeed(): Observable<PostView[]> {
+    return this._http.get<PostView[]>(`${environment.api}/post/feed`);
   }
   createPost(obj: CreatePostReq) {
     return this._http.post<string>(`${environment.api}/post/create`, obj);

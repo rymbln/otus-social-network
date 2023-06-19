@@ -19,3 +19,12 @@ public class PostEntity
     public DateTime TimeStamp { get; set; }
 }
 
+public class PostView
+{
+    public string PostId { get; set; }
+    public string PostText { get; set; }
+    public DateTime Timestamp { get; set; }
+    public string FriendId { get; set; }
+    public string FriendName { get; set; }
+
+}
