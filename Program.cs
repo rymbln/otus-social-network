@@ -8,7 +8,7 @@ using OtusSocialNetwork.DataClasses.Internals;
 using OtusSocialNetwork.Filters;
 using OtusSocialNetwork.Middlewares;
 using OtusSocialNetwork.Services;
-
+using OtusSocialNetwork.Tarantool;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -18,7 +18,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.Configure<DatabaseSettings>(config.GetSection("DatabaseSettings"));
+builder.Services.Configure<TarantoolSettings>(config.GetSection("TarantoolSettings"));
 builder.Services.AddScoped<IDatabaseContext, DatabaseContext>();
+builder.Services.AddScoped<ITarantoolService, TarantoolService>();
 builder.Services.AddSingleton<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IAuthenticatedUserService, AuthenticatedUserService>();
 builder.Services.AddHttpContextAccessor();

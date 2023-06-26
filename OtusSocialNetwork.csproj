@@ -21,14 +21,21 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.2" />
     <PackageReference Include="Npgsql" Version="7.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="progaudi.tarantool" Version="0.15.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Postgres\" />
     <Folder Include="Specs\" />
+    <Folder Include="Tarantool\" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="Specs\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Tarantool\ITarantoolService.cs" />
+    <Compile Include="Tarantool\TarantoolService.cs" />
+    <Compile Include="Tarantool\TarantoolSettings.cs" />
   </ItemGroup>
 </Project>
