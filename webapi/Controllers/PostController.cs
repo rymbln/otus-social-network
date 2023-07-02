@@ -1,13 +1,17 @@
 ﻿using System;
 using AutoMapper;
+using MassTransit;
+using MassTransit.Transports;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OtusSocialNetwork.Database;
 using OtusSocialNetwork.DataClasses.Dtos;
+using OtusSocialNetwork.DataClasses.Notifications;
 using OtusSocialNetwork.DataClasses.Requests;
 using OtusSocialNetwork.DataClasses.Responses;
 using OtusSocialNetwork.Services;
+using OtusSocialNetwork.Tarantool;
 
 namespace OtusSocialNetwork.Controllers;
 
@@ -19,11 +23,16 @@ public class PostController : ControllerBase
 	private readonly IAuthenticatedUserService _auth;
 	private readonly IDatabaseContext _db;
 	private readonly IMapper _mapper;
-	public PostController(IAuthenticatedUserService auth, IDatabaseContext db, IMapper mapper)
+	private readonly ITarantoolService _tarantool;
+    private readonly IPublishEndpoint _rabbit;
+
+    public PostController(IAuthenticatedUserService auth, IDatabaseContext db, IMapper mapper, ITarantoolService tarantool, IPublishEndpoint rabbit)
 	{
 		_auth = auth;
 		_db = db;
 		_mapper = mapper;
+		_tarantool = tarantool;
+		_rabbit = rabbit;
 	}
 
 	[HttpGet]
@@ -34,7 +43,11 @@ public class PostController : ControllerBase
         var dbRes = await _db.GetPosts(_auth.UserId);
         if (!dbRes.isSuccess) return BadRequest(new ErrorRes(dbRes.msg));
         
-        var res = _mapper.Map<List<PostDto>>(dbRes.posts);
+        var res = _mapper.Map<List<PostDto>>(dbRes.posts.OrderByDescending(o => o.TimeStamp));
+
+		// Write posts to tarantool
+		//await _tarantool.WritePosts(_auth.UserId, res);
+
 		return Ok(res);
     }
 
@@ -43,10 +56,9 @@ public class PostController : ControllerBase
 	{
         if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");
 
-		var res = await _db.GetFeed(_auth.UserId, 1000);
-        if (!res.isSuccess) return BadRequest(new ErrorRes(res.msg));
+		var res = await _tarantool.ReadPosts(_auth.UserId);
 
-		return Ok(res.posts);
+		return Ok(res);
     }
 
 	[HttpGet("{id}")]
@@ -66,8 +78,24 @@ public class PostController : ControllerBase
 	{
 		if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");
 
+		// Add Post to collection
 		var res = await _db.CreatePost(req.Text, _auth.UserId);
         if (!res.isSuccess) return BadRequest(new ErrorRes(res.msg));
+
+		// Get Post 
+		var postId = res.msg;
+		var post = await _db.GetPost(postId);
+        if (!post.isSuccess) return BadRequest(new ErrorRes(post.msg));
+        var postDto = _mapper.Map<PostDto>(post.post);
+
+		// Get Friends
+		var friends = await _db.GetFriends(_auth.UserId);
+        if (!friends.isSuccess) return BadRequest(new ErrorRes(friends.msg));
+
+		// Write to tarantool
+		await _rabbit.Publish<INotificationFeedAdd>(
+			new NotificationFeedAdd(friends.data.Select(o => o.Id).ToList(), postId, postDto)
+			);
 
 		return Ok(new DefaultRes(res.msg));
 	}
@@ -79,6 +107,14 @@ public class PostController : ControllerBase
 
 		var res = await _db.UpdatePost(req.Id, _auth.UserId, req.Text);
         if (!res.isSuccess) return BadRequest(new ErrorRes(res.msg));
+        var post = await _db.GetPost(req.Id);
+        if (!post.isSuccess) return BadRequest(new ErrorRes(post.msg));
+        var postDto = _mapper.Map<PostDto>(post.post);
+
+        // Write to tarantool
+        await _rabbit.Publish<INotificationFeedUpdate>(
+            new NotificationFeedUpdate(req.Id, postDto)
+            );
 
         return Ok(new DefaultRes(res.msg));
     }
@@ -90,6 +126,11 @@ public class PostController : ControllerBase
 
 		var res = await _db.DeletePost(id, _auth.UserId);
         if (!res.isSuccess) return BadRequest(new ErrorRes(res.msg));
+
+        // Write to tarantool
+        await _rabbit.Publish<INotificationFeedDelete>(
+            new NotificationFeedDelete(id)
+            );
 
         return Ok(new DefaultRes(res.msg));
     }

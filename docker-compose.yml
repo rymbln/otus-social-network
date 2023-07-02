@@ -1,6 +1,14 @@
 ﻿version: "3.9"
 
 services:
+  otus-rabbit:
+    container_name: "otus-rabbit"
+    image: rabbitmq:management
+    hostname: "rabbitmq"
+    restart: unless-stopped
+    ports:
+        - '5672:5672'
+        - '15672:15672'
   otus-tarantool:
     image: tarantool/tarantool:2.11
     container_name: otus-tarantool
@@ -47,6 +55,11 @@ services:
       AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
       # Строка подключения к базе данных Postgres
       DatabaseSettings:ConnStr: "Host=otus-db;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      # Подключение к tarantool
+      TarantoolSettings:ConnStr: "operator:123123@127.0.0.1:3301"
+      TarantoolSettings:Space: "posts"
+      # Rabbit
+      RabbitEndpoint: "rabbitmq"
       # Настройки генерации токена авторизации
       JWTSettings:Key: "verystrongkeyforauthtoken"
       JWTSettings:Issuer: otus.social.network

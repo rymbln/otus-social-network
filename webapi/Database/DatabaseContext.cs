@@ -178,7 +178,9 @@ public class DatabaseContext : IDatabaseContext, IDisposable
     public async Task<(bool isSuccess, string msg)> CreatePost(string text, string userId)
     {
         await using var con = await db.OpenConnectionAsync();
-        // Create account
+        // Create postId
+        var postId = Guid.NewGuid();
+        // Create post
         await using var cmd = new NpgsqlCommand(@"INSERT INTO public.posts
     (id, author_user_id, post_text, ""timestamp"")
     VALUES(@id, @userId, @text, @timestamp);
@@ -186,7 +188,7 @@ public class DatabaseContext : IDatabaseContext, IDisposable
         {
             Parameters =
                 {
-                    new("id", Guid.NewGuid()),
+                    new("id", postId),
                     new("userId", userId),
                     new("text", text),
                     new("timestamp", DateTime.UtcNow)
@@ -194,7 +196,8 @@ public class DatabaseContext : IDatabaseContext, IDisposable
         };
 
         await cmd.ExecuteNonQueryAsync();
-        return (true, "OK");
+
+        return (true, postId.ToString()) ;
     }
     public async Task<(bool isSuccess, string msg, PostEntity post)> GetPost(string id, string userId)
     {
@@ -208,11 +211,39 @@ public class DatabaseContext : IDatabaseContext, IDisposable
         return (false, "Not found", null);
     }
 
+    public async Task<(bool isSuccess, string msg, PostView post)> GetPost(string id)
+    {
+        await using var con = await db.OpenConnectionAsync();
+
+        var sql = "select p.id as PostId," +
+            "p.post_text as PostText," +
+            "p.\"timestamp\" as  Timestamp," +
+            "p.author_user_id as FriendId, " +
+            "concat(u.first_name , ' ' , u.second_name) as FriendName" +
+            " from public.posts p " +
+            " inner join \"user\" u on p.author_user_id = u.id " +
+            " WHERE p.id = @id";
+        var item = await con.QueryFirstOrDefaultAsync<PostView>(sql, new { id });
+        if (item != null)
+            return (true, "OK", item);
+
+        return (false, "Not found", null);
+    }
+
     public async Task<(bool isSuccess, string msg, List<PostEntity> posts)> GetPosts(string userId)
     {
         await using var con = await db.OpenConnectionAsync();
 
-        var sql = "SELECT id, author_user_id as AuthorUserId, post_text as Text, \"timestamp\"\nFROM public.posts where author_user_id = @userId;\n";
+        var sql = """
+                        SELECT
+                        id as Id,
+                        author_user_id as AuthorUserId,
+                        post_text as Text,
+                        "timestamp" as TimeStamp
+            FROM public.posts
+            WHERE author_user_id = @userId
+            """;
+
         var items = await con.QueryAsync<PostEntity>(sql, new { userId = userId });
         return (true, "OK", items.ToList());
     }
@@ -334,10 +365,11 @@ public class DatabaseContext : IDatabaseContext, IDisposable
         await using var con = await db.OpenConnectionAsync();
 
         var sql = """
-                        select p.id as post_id,
-            p.post_text, p."timestamp" ,
-            f.friend_id, 
-            concat(u.first_name , ' ' , u.second_name) friend_name
+                        select p.id as PostId,
+            p.post_text as PostText,
+            p."timestamp" as  Timestamp,
+            f.friend_id as FriendId, 
+            concat(u.first_name , ' ' , u.second_name) as FriendName
             from public.posts p 
             inner join friends f on f.friend_id  = p.author_user_id 
             inner join "user" u on f.friend_id  = u.id  

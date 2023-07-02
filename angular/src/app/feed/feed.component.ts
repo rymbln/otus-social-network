@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { BehaviorSubject, Observable, shareReplay, switchMap, tap } from 'rxjs';
-import { PostView } from '../model/post.model';
+import { PostDto, PostView } from '../model/post.model';
 import { PostService } from '../post.service';
 
 @Component({
@@ -11,7 +11,7 @@ import { PostService } from '../post.service';
 export class FeedComponent {
   private _refresh = new BehaviorSubject<boolean>(false);
 
-  posts$: Observable<PostView[]> = this._refresh.asObservable().pipe(
+  posts$: Observable<PostDto[]> = this._refresh.asObservable().pipe(
     switchMap(e => this.srv.getFeed()),
     tap(data => console.log(data)),
     shareReplay()

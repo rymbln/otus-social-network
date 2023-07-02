@@ -18,6 +18,7 @@ public interface IDatabaseContext
     Task<(bool isSuccess, string msg)> CreatePost(string text, string userId);
     Task<(bool isSuccess, string msg, List<PostEntity> posts)> GetPosts(string userId);
     Task<(bool isSuccess, string msg, PostEntity post)> GetPost(string id, string userId);
+    Task<(bool isSuccess, string msg, PostView post)> GetPost(string id);
     Task<(bool isSuccess, string msg, List<PostView> posts)> GetFeed(string userId, int limit);
 
     Task<(bool isSuccess, string msg, List<FriendView> data)> GetFriends(string userId);

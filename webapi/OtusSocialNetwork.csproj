@@ -22,20 +22,24 @@
     <PackageReference Include="Npgsql" Version="7.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="progaudi.tarantool" Version="0.15.0" />
+    <PackageReference Include="MassTransit.Kafka" Version="8.0.16" />
+    <PackageReference Include="MassTransit.Extensions.DependencyInjection" Version="7.3.1" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.0.16" />
+    <PackageReference Include="MassTransit" Version="8.0.16" />
+    <PackageReference Include="MassTransit.AspNetCore" Version="7.3.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Postgres\" />
     <Folder Include="Specs\" />
     <Folder Include="Tarantool\" />
+    <Folder Include="DataClasses\Notifications\" />
+    <Folder Include="Consumers\" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="Specs\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Tarantool\ITarantoolService.cs" />
-    <Compile Include="Tarantool\TarantoolService.cs" />
-    <Compile Include="Tarantool\TarantoolSettings.cs" />
+    <None Remove="DataClasses\Notifications\" />
+    <None Remove="Consumers\" />
   </ItemGroup>
 </Project>

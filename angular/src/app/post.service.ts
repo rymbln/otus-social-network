@@ -19,8 +19,8 @@ export class PostService {
   getPost(id: string) {
     return this._http.get<PostDto>(`${environment.api}/post/${id}`);
   }
-  getFeed(): Observable<PostView[]> {
-    return this._http.get<PostView[]>(`${environment.api}/post/feed`);
+  getFeed(): Observable<PostDto[]> {
+    return this._http.get<PostDto[]>(`${environment.api}/post/feed`);
   }
   createPost(obj: CreatePostReq) {
     return this._http.post<string>(`${environment.api}/post/create`, obj);

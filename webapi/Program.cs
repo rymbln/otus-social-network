@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -9,6 +10,7 @@ using OtusSocialNetwork.Filters;
 using OtusSocialNetwork.Middlewares;
 using OtusSocialNetwork.Services;
 using OtusSocialNetwork.Tarantool;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -20,7 +22,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<DatabaseSettings>(config.GetSection("DatabaseSettings"));
 builder.Services.Configure<TarantoolSettings>(config.GetSection("TarantoolSettings"));
 builder.Services.AddScoped<IDatabaseContext, DatabaseContext>();
-builder.Services.AddScoped<ITarantoolService, TarantoolService>();
+builder.Services.AddSingleton<ITarantoolService, TarantoolService>();
 builder.Services.AddSingleton<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IAuthenticatedUserService, AuthenticatedUserService>();
 builder.Services.AddHttpContextAccessor();
@@ -126,6 +128,18 @@ builder.Services.AddSwaggerGen(c =>
                         }, new List<string>()
                     },
                 });
+});
+
+builder.Services.AddMassTransit(busConfigurator =>
+{ 
+    busConfigurator.SetKebabCaseEndpointNameFormatter();
+    busConfigurator.AddConsumers(Assembly.GetExecutingAssembly());
+    busConfigurator.UsingRabbitMq((context, busFactoryConfigurator) =>
+    {
+        //busFactoryConfigurator.Host("rabbitmq", "/", h => { });
+        busFactoryConfigurator.Host(config.GetValue<string>("RabbitEndpoint"), hostConfigurator => { });
+        busFactoryConfigurator.ConfigureEndpoints(context);
+    });
 });
 
 var app = builder.Build();
