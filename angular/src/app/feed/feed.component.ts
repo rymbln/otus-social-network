@@ -13,7 +13,7 @@ export class FeedComponent {
 
   posts$: Observable<PostDto[]> = this._refresh.asObservable().pipe(
     switchMap(e => this.srv.getFeed()),
-    tap(data => console.log(data)),
+    tap(data => console.log(data.length)),
     shareReplay()
   );
 

@@ -28,7 +28,8 @@ local function init()
     posts:format({
         {name = 'id', type = 'string'},
         {name = 'userid', type = 'string'},
-        {name = 'datetime', type = 'number'},
+        {name = 'postid', type = 'string'},
+        {name = 'numberid', type = 'number'},
         {name = 'content', type = 'string'},
     })
 
@@ -51,22 +52,30 @@ local function init()
         }
     })
 
-    posts:create_index('secondary_user_date', {
+    posts:create_index('secondary_post', {
+        if_not_exists = true,
+        unique = false,
+        parts = { 
+            { field = 'postid', type = 'string'}
+        }
+    })
+
+    posts:create_index('secondary_user_number', {
         if_not_exists = true,
         unique = false,
         parts = { 
             { field = 'userid', type = 'string'}, 
-            {field = 'datetime', type = 'number'} 
+            {field = 'numberid', type = 'number'} 
         }
     })
     log.info("secondary index created.")
 end
 
-function update_post_idx(userId)
+function update_post_idx(userid)
     local space = box.space['posts']
     local index = space.index['secondary_user']
     -- Select tuples by index value
-    local result = index:select(index_value)
+    local result = index:select(userid)
 
     -- Update a field value in each selected tuple
     for k,v in pairs(result) do
@@ -74,12 +83,22 @@ function update_post_idx(userId)
     end
 end
 
-function delete_posts(userId) 
+function delete_user_posts(userid) 
     local space = box.space['posts']
     local index = space.index['secondary_user']
 
     -- Iterate over the tuples in the index
-    for _, tuple in index:pairs(userId) do
+    for _, tuple in index:pairs(userid) do
+        tuple:delete()
+    end
+end 
+
+function delete_post(postid) 
+    local space = box.space['posts']
+    local index = space.index['secondary_post']
+
+    -- Iterate over the tuples in the index
+    for _, tuple in index:pairs(postid) do
         tuple:delete()
     end
 end 

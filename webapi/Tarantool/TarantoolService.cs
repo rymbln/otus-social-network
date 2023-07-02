@@ -23,7 +23,8 @@ public class TarantoolService: ITarantoolService, IDisposable
     private ISchema schema;
     private IIndex _primaryIndex;
     private IIndex _secondaryUserIndex;
-    private IIndex _secondaryUserDateIndex;
+    private IIndex _secondaryPostIndex;
+    private IIndex _secondaryUserNumberIndex;
 
     public TarantoolService(IOptions<TarantoolSettings> settings)
 	{
@@ -41,7 +42,8 @@ public class TarantoolService: ITarantoolService, IDisposable
         this.space = await schema.GetSpace(this.spaceName);
         this._primaryIndex = await space.GetIndex("primary");
         this._secondaryUserIndex = await space.GetIndex("secondary_user");
-        this._secondaryUserDateIndex = await space.GetIndex("secondary_user_date");
+        this._secondaryPostIndex = await space.GetIndex("secondary_post");
+        this._secondaryUserNumberIndex = await space.GetIndex("secondary_user_number");
 
     }
 
@@ -52,21 +54,24 @@ public class TarantoolService: ITarantoolService, IDisposable
 
     public async Task WritePosts(string userId, List<PostDto> posts)
     {
-        // Read existing posts
-        var data = await _secondaryUserIndex.Select<TarantoolTuple<string>,
-                   TarantoolTuple<string, string, long, string>>(
-                   TarantoolTuple.Create(userId), new SelectOptions
-                   {
-                       Iterator = Iterator.All
+        //// Read existing posts
+        //var data = await _secondaryUserIndex.Select<TarantoolTuple<string>,
+        //           TarantoolTuple<string, string, long, string>>(
+        //           TarantoolTuple.Create(userId), new SelectOptions
+        //           {
+        //               Iterator = Iterator.All
 
-                   });
-        // Delete
-        foreach (var item in data.Data)
-        {
-            await _primaryIndex.Delete<TarantoolTuple<string>, TarantoolTuple<string, string, long, string>>(
-                TarantoolTuple.Create(item.Item1)
-            );
-        }
+        //           });
+        //// Delete
+        //foreach (var item in data.Data)
+        //{
+        //    await _primaryIndex.Delete<TarantoolTuple<string>, TarantoolTuple<string, string, long, string>>(
+        //        TarantoolTuple.Create(item.Item1)
+        //    );
+        //}
+
+        // Delete user posts
+        await box.Call("delete_user_posts", TarantoolTuple.Create(userId));
 
         // Write new posts
         var idx = 0;
@@ -76,6 +81,7 @@ public class TarantoolService: ITarantoolService, IDisposable
             await space.Insert(TarantoolTuple.Create(
                 Guid.NewGuid().ToString(),
                 userId,
+                post.Id,
                 idx,
                 JsonSerializer.Serialize(post)));
         }
@@ -84,17 +90,16 @@ public class TarantoolService: ITarantoolService, IDisposable
     public async Task<List<PostDto>> ReadPosts(string userId)
     {
         var data = await _secondaryUserIndex.Select<TarantoolTuple<string>,
-                    TarantoolTuple<string, string, long, string>>(
+                    TarantoolTuple<string, string, string, long, string>>(
                     TarantoolTuple.Create(userId), new SelectOptions
                     {
                         Iterator = Iterator.All
-                         
-                    });
+                                         });
         var res = new List<PostDto>();
         foreach (var item in data.Data.OrderBy(o => o.Item3))
         {
-            if (!string.IsNullOrEmpty(item.Item4))
-            res.Add(JsonSerializer.Deserialize<PostDto>(item.Item4));
+            if (!string.IsNullOrEmpty(item.Item5))
+            res.Add(JsonSerializer.Deserialize<PostDto>(item.Item5));
         }
         return res;
     }
@@ -102,13 +107,16 @@ public class TarantoolService: ITarantoolService, IDisposable
     public async Task WritePost(string userId, PostDto post)
     {
         // Find old 1000 post and delete them
-        var oldPost =  await _secondaryUserDateIndex.Select<
+        var oldPost =  await _secondaryUserNumberIndex.Select<
             TarantoolTuple<string, int>,
-                   TarantoolTuple<string, string, long, string>>(
+                   TarantoolTuple<string, string, string, long, string>>(
                    TarantoolTuple.Create(userId, 1000));
         foreach (var item in oldPost.Data)
         {
-            await _primaryIndex.Delete<TarantoolTuple<string>, TarantoolTuple<string, string, long, string>>(TarantoolTuple.Create(item.Item1));
+            await _primaryIndex.Delete<
+                TarantoolTuple<string>,
+                TarantoolTuple<string, string, string, long, string>
+                >(TarantoolTuple.Create(item.Item1));
         }
 
 
@@ -120,6 +128,32 @@ public class TarantoolService: ITarantoolService, IDisposable
         await box.Call("update_post_idx", TarantoolTuple.Create(userId));
       
 
+    }
+
+    public async Task UpdatePost(PostDto post)
+    {
+        var oldPost = await _secondaryPostIndex.Select<
+        TarantoolTuple<string>,
+               TarantoolTuple<string, string, string, long, string>>(
+               TarantoolTuple.Create(post.Id));
+
+        foreach (var item in oldPost.Data)
+        {
+            var updatedData = await space.Update<
+                    TarantoolTuple<string>,
+                    TarantoolTuple<string, string, string, long, string>>(
+                TarantoolTuple.Create(item.Item1),
+                new UpdateOperation[]
+                {
+                    UpdateOperation.CreateAssign(5, JsonSerializer.Serialize(post))
+                }
+                );
+        }
+    }
+
+    public async Task DeletePost(string postid)
+    {
+        await box.Call("delete_post", TarantoolTuple.Create(postid));
     }
 }
 

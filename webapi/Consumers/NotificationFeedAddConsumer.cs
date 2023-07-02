@@ -10,14 +10,10 @@ namespace OtusSocialNetwork.Consumers;
 public class NotificationFeedAddConsumer: IConsumer<INotificationFeedAdd>
 {
     private readonly ITarantoolService _tarantool;
-    private readonly IDatabaseContext _db;
-    private readonly IMapper _mapper;
 
-    public NotificationFeedAddConsumer(ITarantoolService tarantool, IDatabaseContext db, IMapper mapper)
+    public NotificationFeedAddConsumer(ITarantoolService tarantool)
     {
         _tarantool = tarantool;
-        _db = db;
-        _mapper = mapper;
     }
 
     public async Task Consume(ConsumeContext<INotificationFeedAdd> context)
@@ -25,6 +21,7 @@ public class NotificationFeedAddConsumer: IConsumer<INotificationFeedAdd>
         foreach (var userId in context.Message.UserIds)
         {
             await _tarantool.WritePost(userId, context.Message.Post);
+            Console.WriteLine($"INotificationFeedAdd event consumed. Message: {context.Message.PostId}");
         }
     }
 }
