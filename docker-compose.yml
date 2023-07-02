@@ -4,11 +4,14 @@ services:
   otus-rabbit:
     container_name: "otus-rabbit"
     image: rabbitmq:management
-    hostname: "rabbitmq"
+    hostname: "otus-rabbit"
     restart: unless-stopped
     ports:
-        - '5672:5672'
-        - '15672:15672'
+      - '5672:5672'
+      - '15672:15672'
+    networks:
+      - otus-network
+  
   otus-tarantool:
     image: tarantool/tarantool:2.11
     container_name: otus-tarantool
@@ -20,12 +23,15 @@ services:
       - 3301:3301
     volumes:
       - ./volumes/tarantool/data:/var/lib/tarantool
-      - ./volumes/tarantool/init:/usr/local/share/tarantool/init
+      - ./tarantool:/usr/local/share/tarantool/init
     command: tarantool /usr/local/share/tarantool/init/init.lua
+    networks:
+      - otus-network
+  
   otus-db:
     image: postgres:14
     build:
-      context: ./Postgres
+      context: ./postgres
       dockerfile: ./Dockerfile
     container_name: otus-db
     restart: unless-stopped
@@ -37,15 +43,16 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./Postgres:/docker-entrypoint-initdb.d # Инициализация таблиц
+      - ./postgres:/docker-entrypoint-initdb.d # Инициализация таблиц
       - ./volumes/Database/data:/var/lib/postgresql/data # Папка, где postgres будет хранить данные
       - ./volumes/Database/backups:/backups # Папка для бекапов
     networks:
       - otus-network
+  
   otus-api:
     image: otus-api-image
     build:
-      context: ./
+      context: ./webapi
       dockerfile: ./Dockerfile
     container_name: otus-api
     restart: always
@@ -56,10 +63,10 @@ services:
       # Строка подключения к базе данных Postgres
       DatabaseSettings:ConnStr: "Host=otus-db;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
       # Подключение к tarantool
-      TarantoolSettings:ConnStr: "operator:123123@127.0.0.1:3301"
+      TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
       TarantoolSettings:Space: "posts"
       # Rabbit
-      RabbitEndpoint: "rabbitmq"
+      RabbitEndpoint: "otus-rabbit"
       # Настройки генерации токена авторизации
       JWTSettings:Key: "verystrongkeyforauthtoken"
       JWTSettings:Issuer: otus.social.network
@@ -73,8 +80,25 @@ services:
     depends_on:
       - otus-db
       - otus-tarantool
+      - otus-rabbit
     networks:
       - otus-network
+  
+  otus-web:
+    image: otus-web-image
+    container_name: otus-web
+    build:
+      context: ./angular
+      dockerfile: ./Dockerfile
+    restart: always
+    mem_limit: 256m
+    ports:
+      - 4200:80
+    depends_on:
+      - otus-api
+    networks:
+      - otus-network
+
 networks:
   otus-network:
     driver: bridge

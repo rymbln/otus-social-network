@@ -1,18 +1,13 @@
 # OtusSocialNetwork. Инструкция по запуску
 
-Запрос для создания таблиц лежит в папке `Postgres`.
-Коллекция вызовов для Postman лежит в папке `Postman`.
+Для запуска используем `docker-compose up -d`.
 
-1. Запускаем базу данных и API командой `docker-compose up -d`.
-2. Ждем когда Postgres запустится, перезагрузится, создадутся таблицы.
-3. Открываем Postman, создаем нового пользователя `qwerty` с паролем `qwerty`. Запрос `Register`. Получаем id пользователя.
-4. Логинимся с полученным id. Запрос `Login`. Получаем токен авторизации
-5. Получаем информацию о пользователе. Запрос `Get user by id`.
+После этого заходим в браузере на localhost:4200. 
+Нажимаем кнопку Login. Данные для входа уже предзаполнены.
 
---- 
+В системе зарегистрировано три логина:
+3eefe556-a733-4ba9-ba28-3e55cc459a79
+b2428a06-ee2a-40b8-94f4-69cd3c85a2e0
+3cc744e5-ec95-4926-9a64-aba219819337
 
-docker-compose up otus-db -d
-
-cp ./Postgres/20230501-otusdb.sql ./volumes/Database/backups
-
-docker exec -t otus-db psql -U dbuser -d otusdb -f /backups/20230501-otusdb.sql
+У всех пароль qwerty
