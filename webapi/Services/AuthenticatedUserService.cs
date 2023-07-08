@@ -13,9 +13,11 @@ public class AuthenticatedUserService : IAuthenticatedUserService
     public AuthenticatedUserService(IHttpContextAccessor httpContextAccessor)
     {
         UserId = httpContextAccessor.HttpContext?.User?.FindFirstValue("uid") ?? string.Empty;
+        NameIdentifier = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
       
     }
 
     public string UserId { get; }
+    public string NameIdentifier { get; }
    
 }

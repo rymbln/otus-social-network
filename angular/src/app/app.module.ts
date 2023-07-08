@@ -32,6 +32,8 @@ import { ErrorInterceptor } from './shared/error.interceptor';
 import { FriendService } from './friend.service';
 import { FriendsComponent } from './friends/friends.component';
 import { FeedComponent } from './feed/feed.component';
+import { NgChartsModule } from 'ng2-charts';
+import { ChartComponent } from './chart/chart.component';
 
 @NgModule({
   declarations: [
@@ -42,7 +44,8 @@ import { FeedComponent } from './feed/feed.component';
     PostsComponent,
     ProfileComponent,
     FriendsComponent,
-    FeedComponent
+    FeedComponent,
+    ChartComponent
   ],
   imports: [
     BrowserModule,
@@ -59,7 +62,8 @@ import { FeedComponent } from './feed/feed.component';
     ToolbarModule,
     DialogModule,
     InputTextareaModule,
-    ConfirmDialogModule
+    ConfirmDialogModule,
+    NgChartsModule
   ],
   providers: [
     AuthGuard,

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +21,9 @@ using System.Text;
 
 namespace OtusSocialNetwork.Controllers;
 
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+[ApiController]
+[Route("api/login")]
 public class LoginController : ControllerBase
 {
     private readonly IDatabaseContext _db;
@@ -40,7 +44,7 @@ public class LoginController : ControllerBase
         _rabbit = rabbit;
     }
     [AllowAnonymous]
-    [HttpPost("login")]
+    [HttpPost]
     public async Task<IActionResult> Login([FromBody] LoginReq data)
     {
         var login = await _db.GetLoginAsync(data.Id);
@@ -70,7 +74,7 @@ public class LoginController : ControllerBase
     {
         var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
         var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
-        var claims = new List<Claim> { new Claim("uid", userId) };
+        var claims = new List<Claim> { new Claim("uid", userId), new Claim(ClaimTypes.NameIdentifier, userId ) };
 
         var jwtSecurityToken = new JwtSecurityToken(
             claims: claims,

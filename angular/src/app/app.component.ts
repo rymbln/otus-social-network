@@ -15,9 +15,15 @@ export class AppComponent {
     map((val: boolean) => {
       const items: MenuItem[] = [];
 
+      items.push({
+        label: 'Chart',
+        icon: 'pi pi-pie',
+        routerLink: ['/chart']
+      });
+
       if (val) {
         items.push({
-          label: 'Me',
+          label: 'Me: ' + this.auth.currentUser,
           icon: 'pi pi-id-card',
           routerLink: ['/']
         });
@@ -54,6 +60,7 @@ export class AppComponent {
           icon: 'pi pi-sign-in',
           routerLink: ['/register']
         });
+
       }
       return items;
     }),

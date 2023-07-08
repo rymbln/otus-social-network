@@ -5,10 +5,12 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 using OtusSocialNetwork.Database;
+using OtusSocialNetwork.DataClasses.Dtos;
 using OtusSocialNetwork.DataClasses.Internals;
 using OtusSocialNetwork.Filters;
 using OtusSocialNetwork.Middlewares;
 using OtusSocialNetwork.Services;
+using OtusSocialNetwork.SignalHub;
 using OtusSocialNetwork.Tarantool;
 using System.Reflection;
 using System.Text;
@@ -25,11 +27,13 @@ builder.Services.AddScoped<IDatabaseContext, DatabaseContext>();
 builder.Services.AddSingleton<ITarantoolService, TarantoolService>();
 builder.Services.AddSingleton<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IAuthenticatedUserService, AuthenticatedUserService>();
+// TODO: Delete
+builder.Services.AddSingleton<TimerManager>();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddControllers(options =>
-{
-    options.Filters.Add(typeof(ValidateModelStateAttribute));
-});
+//builder.Services.AddControllers(options =>
+//{
+//    options.Filters.Add(typeof(ValidateModelStateAttribute));
+//});
 //    .AddJsonOptions(options =>
 //{
 //    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
@@ -37,6 +41,20 @@ builder.Services.AddControllers(options =>
 //});
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", builder => builder
+        .WithOrigins("http://localhost:4200")
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials());
+});
+
+builder.Services.AddSignalR();
+
+builder.Services.AddControllers();
 
 builder.Services.Configure<JWTSettings>(config.GetSection("JWTSettings"));
 builder.Services.AddAuthentication(options =>
@@ -86,11 +104,8 @@ builder.Services.AddAuthentication(options =>
             },
         };
     });
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(policy => policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
-});
-builder.Services.AddEndpointsApiExplorer();
+
+//builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -142,6 +157,8 @@ builder.Services.AddMassTransit(busConfigurator =>
     });
 });
 
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -153,9 +170,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("CorsPolicy");
+
 app.UseAuthorization();
+
 app.UseMiddleware<ErrorHandlerMiddleware>();
-app.UseCors();
+
+//app.UseRouting();
 app.MapControllers();
+//app.MapHub<PostHub>("/post/feed/posted");
+app.MapHub<ChartHub>("/chart");
 
 app.Run();

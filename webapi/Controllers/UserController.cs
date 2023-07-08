@@ -14,6 +14,8 @@ using OtusSocialNetwork.Services;
 namespace OtusSocialNetwork.Controllers;
 
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+[ApiController]
+[Route("api/[controller]")]
 public class UserController: ControllerBase
 {
     private readonly IDatabaseContext _db;
@@ -28,7 +30,7 @@ public class UserController: ControllerBase
         _auth = auth;
     }
     [AllowAnonymous]
-    [HttpPost("user/register")]
+    [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterReq data)
     {
         var user = _mapper.Map<UserEntity>(data);
@@ -44,7 +46,7 @@ public class UserController: ControllerBase
     }
 
     [Authorize]
-    [HttpGet("user/get/{id}")]
+    [HttpGet("get/{id}")]
     public async Task<IActionResult> GetUser(Guid id)
     {
         var dbRes = await _db.GetUserAsync(id.ToString());
@@ -55,7 +57,7 @@ public class UserController: ControllerBase
     }
 
     [Authorize]
-    [HttpGet("user/profile")]
+    [HttpGet("profile")]
     public async Task<IActionResult> GetProfile()
     {
         if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest(new ErrorRes("Empty"));
@@ -68,7 +70,7 @@ public class UserController: ControllerBase
     }
 
     [Authorize]
-    [HttpGet("user/search")]
+    [HttpGet("search")]
     public async Task<IActionResult> Search(SearchReq query)
     {
         var dbRes = await _db.SearchUserAsync(query.FirstName, query.LastName);
@@ -79,7 +81,7 @@ public class UserController: ControllerBase
     }
 
     [Authorize]
-    [HttpPost("user/newtable")]
+    [HttpPost("newtable")]
     public async Task<IActionResult> AddRecordNewTable([FromBody] NewTableReq data)
     {
         var user = _mapper.Map<NewTableEntity>(data);

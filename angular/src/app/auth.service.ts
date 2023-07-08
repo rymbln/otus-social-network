@@ -9,7 +9,9 @@ import { Router } from '@angular/router';
   providedIn: 'root'
 })
 export class AuthService {
-  currentUser: any;
+  currentUser = '';
+
+  private readonly ClaimTypes_NameIdentifier = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier';
 
   private _isAuth = new BehaviorSubject<boolean>(false);
   isAuth$: Observable<boolean> = this._isAuth.asObservable().pipe(shareReplay());
@@ -26,6 +28,8 @@ export class AuthService {
       const token =  this.localStorage.getItem(this.AUTH_KEY) ?? '';
       if (token !== '') {
         this._isAuth.next(true);
+        const data = this.parseJwt(token);
+        this.currentUser = data[this.ClaimTypes_NameIdentifier];
         this.jwt = token;
       }
 
@@ -40,6 +44,7 @@ export class AuthService {
           this.localStorage.setItem(this.AUTH_KEY, data.token);
           this.jwt = data.token;
           const token = this.parseJwt(data.token);
+          this.currentUser = token[this.ClaimTypes_NameIdentifier];
           console.log(token)
           return true;
         }),

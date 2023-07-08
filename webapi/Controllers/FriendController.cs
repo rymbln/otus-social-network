@@ -15,7 +15,7 @@ namespace OtusSocialNetwork.Controllers;
 
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 [ApiController]
-[Route("friend")]
+[Route("api/[controller]")]
 public class FriendController: ControllerBase
 {
     private readonly IAuthenticatedUserService _auth;

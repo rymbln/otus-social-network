@@ -5,6 +5,7 @@ using MassTransit.Transports;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using OtusSocialNetwork.Database;
 using OtusSocialNetwork.DataClasses.Dtos;
 using OtusSocialNetwork.DataClasses.Notifications;
@@ -17,7 +18,7 @@ namespace OtusSocialNetwork.Controllers;
 
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 [ApiController]
-[Route("post")]
+[Route("api/[controller]")]
 public class PostController : ControllerBase
 {
 	private readonly IAuthenticatedUserService _auth;
@@ -25,17 +26,28 @@ public class PostController : ControllerBase
 	private readonly IMapper _mapper;
 	private readonly ITarantoolService _tarantool;
     private readonly IPublishEndpoint _rabbit;
+    
 
-    public PostController(IAuthenticatedUserService auth, IDatabaseContext db, IMapper mapper, ITarantoolService tarantool, IPublishEndpoint rabbit)
+    public PostController(IAuthenticatedUserService auth, IDatabaseContext db, IMapper mapper,
+		ITarantoolService tarantool,
+		IPublishEndpoint rabbit)
 	{
 		_auth = auth;
 		_db = db;
 		_mapper = mapper;
 		_tarantool = tarantool;
 		_rabbit = rabbit;
-	}
 
-	[HttpGet]
+	}
+ //   [HttpGet]
+	//[Route("/feed/posted")]
+ //   public IActionResult Get()
+ //   {
+ //       _hub.Clients.All.SendAsync("Posted", DataManager.GetData());
+ //       return Ok(new { Message = "Request Completed" });
+ //   }
+
+    [HttpGet]
 	public async Task<IActionResult> GetPosts()
 	{
         if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");

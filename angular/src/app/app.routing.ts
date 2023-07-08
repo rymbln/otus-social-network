@@ -8,12 +8,17 @@ import { PostsComponent } from './posts/posts.component';
 import { AuthGuard } from './shared/auth.guard';
 import { FriendsComponent } from './friends/friends.component';
 import { FeedComponent } from './feed/feed.component';
+import { ChartComponent } from './chart/chart.component';
 
 const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
     component: ProfileComponent,
+  },
+  {
+    path: 'chart',
+    component: ChartComponent,
   },
   {
     path: 'posts',
