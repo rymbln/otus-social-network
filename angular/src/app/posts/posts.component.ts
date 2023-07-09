@@ -1,12 +1,15 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { PostService } from '../post.service';
-import { PostDto } from '../model/post.model';
+import { PostDto, PostHubModel } from '../model/post.model';
 import { BehaviorSubject, Observable, combineLatest, firstValueFrom, map, shareReplay, switchMap, tap } from 'rxjs';
 import { CreatePostReq } from '../model/create-post.req';
 import { UpdatePostReq } from '../model/update-post.req';
 import { AuthService } from '../auth.service';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { PostHotificationService } from '../post-hotification.service';
+import { environment } from 'src/environments/environment';
+import { HttpClient } from '@angular/common/http';
 
 @UntilDestroy()
 @Component({
@@ -29,16 +32,27 @@ export class PostsComponent implements OnInit {
     shareReplay()
   );
 
-  constructor(private srv: PostService, private auth: AuthService,    private confirm: ConfirmationService,) { }
+  constructor(
+    private srv: PostService,
+    private signal: PostHotificationService,
+    private auth: AuthService,
+    private confirm: ConfirmationService,
+    private http: HttpClient,
+) { }
 
   ngOnInit(): void {
     this._refresh.next(true);
+
   }
   onNew() {
     this.isAdd = true;
     this.isNewPostDialog = true;
     this.newPostText = '';
+
+
   }
+
+
 
   onRefresh() {
     this._refresh.next(true);
@@ -70,10 +84,14 @@ export class PostsComponent implements OnInit {
       const data = new CreatePostReq(this.newPostText);
       this.srv.createPost(data).pipe(
         untilDestroyed(this),
-        tap(e => {
+        tap((data: PostDto) => {
           console.log(data);
           this._refresh.next(true);
           this.isNewPostDialog = false;
+          // Send notification about new post
+          const postHub = { postId: data.id, postText: data.text, authorUserId: data.authorUserId} as PostHubModel;
+          console.log('posthub:', postHub);
+          this.signal.sendPostNotification(postHub);
         })
       ).subscribe();
     } else {

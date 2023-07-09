@@ -1,16 +1,20 @@
-import { Component } from '@angular/core';
-import { MenuItem } from 'primeng/api';
+import { Component, OnInit } from '@angular/core';
+import { MenuItem, MessageService } from 'primeng/api';
 import { AuthService } from './auth.service';
-import { Observable, map, shareReplay } from 'rxjs';
+import { Observable, map, shareReplay, tap } from 'rxjs';
+import { PostHotificationService } from './post-hotification.service';
+import { environment } from 'src/environments/environment';
+import { HttpClient } from '@angular/common/http';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
+@UntilDestroy()
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent  implements OnInit {
   title = 'angular';
-  isAuth$ = this.auth.isAuth$.pipe(shareReplay());
   items$: Observable<MenuItem[]> = this.auth.isAuth$.pipe(
     map((val: boolean) => {
       const items: MenuItem[] = [];
@@ -77,12 +81,41 @@ export class AppComponent {
   // ];
 
   constructor(
-    private auth: AuthService
+    private auth: AuthService,
+    private signal: PostHotificationService,
+    private message: MessageService,
+    private http: HttpClient
   ) {
+    this.auth.isAuth$.pipe(
+      untilDestroyed(this),
+      tap((auth: boolean) => {
+        console.log(auth);
+        if (auth) {
+          this.signal.startConnection();
+          this.signal.addPostNotificationListener();
+        }
+      }),
+      shareReplay()).subscribe();
+  }
 
+  ngOnInit(): void {
+
+    // this.startHttpRequest();
   }
 
   logout() {
     this.auth.logout();
+  }
+
+  toast() {
+    this.message.add({ severity: 'success', summary: 'Success', detail: 'New Post!' })
+  }
+
+  private startHttpRequest = () => {
+    this.http.get(`${environment.api}/post/feed/posted`)
+      .subscribe(res => {
+        this.message.add({ severity: 'success', summary: 'Success', detail: 'New Post!' })
+        console.log(res);
+      })
   }
 }

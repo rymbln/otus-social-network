@@ -7,6 +7,11 @@
       <a class="font-medium no-underline ml-2 text-blue-500 cursor-pointer" [routerLink]="['/register']" routerLinkActive="router-link-active" >Create today!</a>
   </div>
 
+  <div class="flex flex-row justify-content-center gap-3">
+    <p-button label="User 1" (onClick)="id = ids[0]" styleClass="p-button-link"></p-button>
+    <p-button label="User 2" (onClick)="id = ids[1]" styleClass="p-button-link"></p-button>
+    <p-button label="User 3" (onClick)="id = ids[2]" styleClass="p-button-link"></p-button>
+  </div>
   <div>
       <label for="id" class="block text-900 font-medium mb-2">Id</label>
       <input id="id" type="text" placeholder="Id" pInputText [(ngModel)]="id" class="w-full mb-3">

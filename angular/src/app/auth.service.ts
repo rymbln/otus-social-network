@@ -12,6 +12,7 @@ export class AuthService {
   currentUser = '';
 
   private readonly ClaimTypes_NameIdentifier = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier';
+  private readonly ClaimTypes_Name = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name";
 
   private _isAuth = new BehaviorSubject<boolean>(false);
   isAuth$: Observable<boolean> = this._isAuth.asObservable().pipe(shareReplay());
@@ -29,7 +30,8 @@ export class AuthService {
       if (token !== '') {
         this._isAuth.next(true);
         const data = this.parseJwt(token);
-        this.currentUser = data[this.ClaimTypes_NameIdentifier];
+        console.log(data);
+        this.currentUser = data[this.ClaimTypes_Name];
         this.jwt = token;
       }
 
@@ -64,7 +66,6 @@ export class AuthService {
   }
 
   private parseJwt(token: string) {
-    console.log(token);
     var base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
     var jsonPayload = decodeURIComponent(require('buffer').Buffer.from(base64, 'base64').toString().split('').map(function (c: any) {
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);

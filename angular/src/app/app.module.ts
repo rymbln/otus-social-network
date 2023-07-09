@@ -11,6 +11,8 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { MessageModule } from 'primeng/message';
+import { MessagesModule } from 'primeng/messages';
 
 import { LoginComponent } from './login/login.component';
 import { EmptyComponent } from './empty/empty.component';
@@ -27,13 +29,15 @@ import { UserService } from './user.service';
 import { PostService } from './post.service';
 import { AuthGuard } from './shared/auth.guard';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+
 import { ErrorInterceptor } from './shared/error.interceptor';
 import { FriendService } from './friend.service';
 import { FriendsComponent } from './friends/friends.component';
 import { FeedComponent } from './feed/feed.component';
 import { NgChartsModule } from 'ng2-charts';
-import { ChartComponent } from './chart/chart.component';
+import { PostHotificationService as PostNotificationService } from './post-hotification.service';
 
 @NgModule({
   declarations: [
@@ -45,8 +49,7 @@ import { ChartComponent } from './chart/chart.component';
     ProfileComponent,
     FriendsComponent,
     FeedComponent,
-    ChartComponent
-  ],
+    ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -63,15 +66,19 @@ import { ChartComponent } from './chart/chart.component';
     DialogModule,
     InputTextareaModule,
     ConfirmDialogModule,
-    NgChartsModule
+    NgChartsModule,
+    ToastModule,
+    MessagesModule,
+    MessageModule
   ],
   providers: [
     AuthGuard,
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
     { provide: 'LOCALSTORAGE', useValue: window.localStorage },
-    AuthService, UserService, PostService, FriendService,
-    ConfirmationService],
+    AuthService, UserService, PostService, FriendService, PostNotificationService,
+    ConfirmationService,
+  MessageService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -23,7 +23,7 @@ local function init()
     box.schema.user.grant('operator', 'read,write,execute', 'universe', nil, { if_not_exists = true })
 
     posts = box.schema.create_space('posts', { if_not_exists = true })
-
+    
     -- Add fields to the space
     posts:format({
         {name = 'id', type = 'string'},
@@ -32,9 +32,17 @@ local function init()
         {name = 'numberid', type = 'number'},
         {name = 'content', type = 'string'},
     })
-
     log.info(posts.name .. " space was created.")
+    
+    usersockets = box.schema.create_space('usersockets', { if_not_exists = true })
+    usersockets:format({
+        {name = 'id', type = 'string'},
+        {name = 'userid', type = 'string'},
+        {name = 'connectionid', type = 'string'}
+    })
+    log.info(usersockets.name .. " space was created.")
 
+    -- Create posts indexes
     posts:create_index('primary', {
         if_not_exists = true,
         type = 'HASH',
@@ -69,6 +77,48 @@ local function init()
         }
     })
     log.info("secondary index created.")
+
+    -- Create sockets indexes
+
+    usersockets:create_index('usersockets_idx_primary', {
+        if_not_exists = true,
+        type = 'HASH',
+        unique = true,
+        parts = { { field = 'id', type = 'string'}}
+    })
+    usersockets:create_index('usersockets_idx_userid', {
+        if_not_exists = true,
+        unique = false,
+        parts = { { field = 'userid', type = 'string'} }
+    })
+    usersockets:create_index('usersockets_idx_connectionid', {
+        if_not_exists = true,
+        unique = false,
+        parts = { { field = 'connectionid', type = 'string'} }
+    })
+    log.info("usersockets index created.")
+end
+
+function delete_usersockets_by_user(userid)
+    local space = box.space['usersockets']
+    local index = space.index['usersockets_idx_userid']
+    -- Select tuples by index value
+    local result = index:select(userid)
+
+    for _,tuple in pairs(result) do
+        tuple:delete()
+    end
+end
+
+function delete_usersockets_by_connection(connectionid)
+    local space = box.space['usersockets']
+    local index = space.index['usersockets_idx_connectionid']
+    -- Select tuples by index value
+    local result = index:select(userid)
+
+    for _,tuple in pairs(result) do
+        tuple:delete()
+    end
 end
 
 function update_post_idx(userid)
@@ -79,16 +129,16 @@ function update_post_idx(userid)
 
     -- Update a field value in each selected tuple
     for k,v in pairs(result) do
-        space:update(v[1], {{'+', 3, 1}}) 
+        space:update(v[1], {{'+', 4, 1}}) 
     end
 end
 
 function delete_user_posts(userid) 
     local space = box.space['posts']
     local index = space.index['secondary_user']
+    local result = index:select(userid)
 
-    -- Iterate over the tuples in the index
-    for _, tuple in index:pairs(userid) do
+    for _,tuple in pairs(result) do
         tuple:delete()
     end
 end 
@@ -96,9 +146,9 @@ end
 function delete_post(postid) 
     local space = box.space['posts']
     local index = space.index['secondary_post']
-
+    local result = index:select(postid)
     -- Iterate over the tuples in the index
-    for _, tuple in index:pairs(postid) do
+    for _,tuple in pairs(result) do
         tuple:delete()
     end
 end 

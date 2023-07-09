@@ -35,4 +35,9 @@ public class UserEntity
     /// Город
     /// </summary>
     public string City { get; set; }
+
+    public string GetFullName()
+    {
+        return $"{First_name} {Second_name}";
+    }
 }

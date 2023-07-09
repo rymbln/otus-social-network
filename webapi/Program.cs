@@ -95,6 +95,20 @@ builder.Services.AddAuthentication(options =>
             //     var result = JsonConvert.SerializeObject(new Response<string>("You are not Authorized"));
             //     return context.Response.WriteAsync(result);
             // },
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                // If the request is for our hub...
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    (path.StartsWithSegments("/post/feed/posted")))
+                {
+                    // Read the token out of the query string
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
             OnForbidden = context =>
             {
                 context.Response.StatusCode = 403;
@@ -178,7 +192,7 @@ app.UseMiddleware<ErrorHandlerMiddleware>();
 
 //app.UseRouting();
 app.MapControllers();
-//app.MapHub<PostHub>("/post/feed/posted");
-app.MapHub<ChartHub>("/chart");
+app.MapHub<PostHub>("/post/feed/posted");
+//app.MapHub<ChartHub>("/chart");
 
 app.Run();

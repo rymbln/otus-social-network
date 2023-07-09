@@ -12,6 +12,7 @@ using OtusSocialNetwork.DataClasses.Notifications;
 using OtusSocialNetwork.DataClasses.Requests;
 using OtusSocialNetwork.DataClasses.Responses;
 using OtusSocialNetwork.Services;
+using OtusSocialNetwork.SignalHub;
 using OtusSocialNetwork.Tarantool;
 
 namespace OtusSocialNetwork.Controllers;
@@ -26,28 +27,33 @@ public class PostController : ControllerBase
 	private readonly IMapper _mapper;
 	private readonly ITarantoolService _tarantool;
     private readonly IPublishEndpoint _rabbit;
-    
+    private readonly IHubContext<PostHub> _hub;
+
 
     public PostController(IAuthenticatedUserService auth, IDatabaseContext db, IMapper mapper,
 		ITarantoolService tarantool,
-		IPublishEndpoint rabbit)
+		IPublishEndpoint rabbit,
+		IHubContext<PostHub> hub)
 	{
 		_auth = auth;
 		_db = db;
 		_mapper = mapper;
 		_tarantool = tarantool;
 		_rabbit = rabbit;
+		_hub = hub;
 
 	}
- //   [HttpGet]
-	//[Route("/feed/posted")]
- //   public IActionResult Get()
- //   {
- //       _hub.Clients.All.SendAsync("Posted", DataManager.GetData());
- //       return Ok(new { Message = "Request Completed" });
- //   }
+	
+	[HttpGet]
+	[Route("/feed/posted")]
+	public IActionResult Get()
+	{
+		_hub.Clients.All.SendAsync("Posted", DataManager.GetData());
+		return Ok(new { Message = "Request Completed" });
+	}
 
-    [HttpGet]
+	[Authorize]
+	[HttpGet]
 	public async Task<IActionResult> GetPosts()
 	{
         if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");
@@ -63,6 +69,7 @@ public class PostController : ControllerBase
 		return Ok(res);
     }
 
+	[Authorize]
 	[HttpGet("feed")]
 	public async Task<IActionResult> GetFeed()
 	{
@@ -70,9 +77,10 @@ public class PostController : ControllerBase
 
 		var res = await _tarantool.ReadPosts(_auth.UserId);
 
-		return Ok(res);
+		return Ok(res.OrderByDescending(o => o.TimeStamp));
     }
 
+	[Authorize]
 	[HttpGet("{id}")]
 	public async Task<IActionResult> GetPost(string id)
 	{
@@ -85,7 +93,8 @@ public class PostController : ControllerBase
         return Ok(res);
     }
 
-	[HttpPost("create")]
+    [Authorize]
+    [HttpPost("create")]
 	public async Task<IActionResult> CreatePost(CreatePostReq req)
 	{
 		if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");
@@ -109,10 +118,11 @@ public class PostController : ControllerBase
 			new NotificationFeedAdd(friends.data.Select(o => o.Id).ToList(), postId, postDto)
 			);
 
-		return Ok(new DefaultRes(res.msg));
+		return Ok(postDto);
 	}
 
-	[HttpPut("update")]
+    [Authorize]
+    [HttpPut("update")]
 	public async Task<IActionResult> UpdatePost(UpdatePostReq req)
 	{
 		if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");
@@ -131,7 +141,8 @@ public class PostController : ControllerBase
         return Ok(new DefaultRes(res.msg));
     }
 
-	[HttpDelete("{id}")]
+    [Authorize]
+    [HttpDelete("{id}")]
 	public async Task<IActionResult> DeletePost(string id)
 	{
         if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");

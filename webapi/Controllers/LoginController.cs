@@ -50,10 +50,11 @@ public class LoginController : ControllerBase
         var login = await _db.GetLoginAsync(data.Id);
         if (login.isSuccess)
         {
+            var profile = await _db.GetUserAsync(data.Id);
             var isPasswordOk = _pass.VerifyHashedPassword(login.account.Password, data.Password);
             if (isPasswordOk)
             {
-                var jwt = await GenerateJWToken(login.account.Id);
+                var jwt = GenerateJWToken(login.account.Id, profile.user.GetFullName());
                 var token = new JwtSecurityTokenHandler().WriteToken(jwt);
 
                 // Write to tarantool
@@ -70,11 +71,14 @@ public class LoginController : ControllerBase
         return BadRequest("No login");
     }
 
-    private async Task<JwtSecurityToken> GenerateJWToken(string userId)
+    private JwtSecurityToken GenerateJWToken(string userId, string username)
     {
         var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
         var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
-        var claims = new List<Claim> { new Claim("uid", userId), new Claim(ClaimTypes.NameIdentifier, userId ) };
+        var claims = new List<Claim> {
+            new Claim("uid", userId),
+            new Claim(ClaimTypes.NameIdentifier, userId ),
+        new Claim(ClaimTypes.Name, username)};
 
         var jwtSecurityToken = new JwtSecurityToken(
             claims: claims,

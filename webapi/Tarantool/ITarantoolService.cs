@@ -10,5 +10,8 @@ public interface ITarantoolService
     Task UpdatePost(PostDto post);
     Task DeletePost(string postId);
     Task<List<PostDto>> ReadPosts(string userId);
+    Task AddUserSocket(string userId, string connectionId);
+    Task DeleteUserSocket(string userId, string connectionId);
+    Task<List<string>> GetConnectedUsers(List<string> userIds);
 }
 

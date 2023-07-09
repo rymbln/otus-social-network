@@ -11,6 +11,7 @@ using ProGaudi.Tarantool.Client.Model.Enums;
 using ProGaudi.Tarantool.Client.Model.Headers;
 using ProGaudi.Tarantool.Client.Model.UpdateOperations;
 using System.Reflection;
+using ProGaudi.Tarantool.Client.Model.Responses;
 
 namespace OtusSocialNetwork.Tarantool;
 
@@ -20,11 +21,14 @@ public class TarantoolService: ITarantoolService, IDisposable
     private readonly string spaceName = "";
     private Box box;
     private ISpace space;
+    private ISpace usersockets;
     private ISchema schema;
     private IIndex _primaryIndex;
     private IIndex _secondaryUserIndex;
     private IIndex _secondaryPostIndex;
     private IIndex _secondaryUserNumberIndex;
+    private IIndex _signalUserIdx;
+    private IIndex _signalConnectionIdx;
 
     public TarantoolService(IOptions<TarantoolSettings> settings)
 	{
@@ -40,11 +44,15 @@ public class TarantoolService: ITarantoolService, IDisposable
         this.box = await Box.Connect(this.connStr);
         this.schema = box.GetSchema();
         this.space = await schema.GetSpace(this.spaceName);
+
         this._primaryIndex = await space.GetIndex("primary");
         this._secondaryUserIndex = await space.GetIndex("secondary_user");
         this._secondaryPostIndex = await space.GetIndex("secondary_post");
         this._secondaryUserNumberIndex = await space.GetIndex("secondary_user_number");
 
+        this.usersockets = await schema.GetSpace("usersockets");
+        _signalUserIdx = await usersockets.GetIndex("usersockets_idx_userid");
+        _signalConnectionIdx = await usersockets.GetIndex("usersockets_idx_connectionid");
     }
 
     public void Dispose()
@@ -120,9 +128,9 @@ public class TarantoolService: ITarantoolService, IDisposable
         }
 
 
-       // Write new post
-        await space.Insert(TarantoolTuple.Create(
-            Guid.NewGuid().ToString(), userId, 0,JsonSerializer.Serialize(post)));
+        // Write new post
+
+        await space.Insert(TarantoolTuple.Create(Guid.NewGuid().ToString(), userId, post.Id, (long)0,JsonSerializer.Serialize(post)));
 
         // Re-enumerate posts
         await box.Call("update_post_idx", TarantoolTuple.Create(userId));
@@ -154,6 +162,54 @@ public class TarantoolService: ITarantoolService, IDisposable
     public async Task DeletePost(string postid)
     {
         await box.Call("delete_post", TarantoolTuple.Create(postid));
+    }
+
+    public async Task AddUserSocket(string userId, string connectionId)
+    {
+        await usersockets.Insert(TarantoolTuple.Create(Guid.NewGuid().ToString(), userId, connectionId));
+    }
+
+    public async Task DeleteUserSocket(string userId, string connectionId)
+    {
+        DataResponse<TarantoolTuple<string, string, string>[]> data;
+        if (!string.IsNullOrEmpty(userId))
+        {
+            data = await _signalUserIdx.Select<TarantoolTuple<string>, TarantoolTuple<string, string, string>>(TarantoolTuple.Create(userId));
+            foreach (var item in data.Data)
+            {
+                await _primaryIndex.Delete<TarantoolTuple<string>, TarantoolTuple<string, string, string>>(TarantoolTuple.Create(item.Item1));
+            }
+            //await box.Call("delete_usersockets_by_user", TarantoolTuple.Create(userId));
+        } else if (!string.IsNullOrEmpty(connectionId))
+        {
+            data = await _signalConnectionIdx.Select<TarantoolTuple<string>, TarantoolTuple<string, string, string>>(TarantoolTuple.Create(connectionId));
+            foreach (var item in data.Data)
+            {
+                await _primaryIndex.Delete<TarantoolTuple<string>, TarantoolTuple<string, string, string>>(TarantoolTuple.Create(item.Item1));
+            }
+            //await box.Call("delete_usersockets_by_connection", TarantoolTuple.Create(connectionId));
+        }
+
+    }
+
+    public async Task<List<string>> GetConnectedUsers(List<string> userIds)
+    {
+        var connections = new List<string>();
+
+        foreach (var userId in userIds)
+        {
+            var data = await _signalUserIdx.Select<TarantoolTuple<string>,
+                    TarantoolTuple<string, string, string>>(
+                    TarantoolTuple.Create(userId), new SelectOptions
+                    {
+                        Iterator = Iterator.All
+                    });
+            foreach (var item in data.Data)
+            {
+                connections.Add(item.Item3);
+            }
+        }
+        return connections;
     }
 }
 

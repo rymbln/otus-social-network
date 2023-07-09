@@ -27,4 +27,6 @@ public class ChartController : ControllerBase
             _timer.PrepareTimer(() => _hub.Clients.All.SendAsync("TransferChartData", DataManager.GetData()));
         return Ok(new { Message = "Request Completed" });
     }
+
+    
 }

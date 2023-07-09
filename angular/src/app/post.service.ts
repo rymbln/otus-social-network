@@ -23,7 +23,7 @@ export class PostService {
     return this._http.get<PostDto[]>(`${environment.api}/post/feed`);
   }
   createPost(obj: CreatePostReq) {
-    return this._http.post<string>(`${environment.api}/post/create`, obj);
+    return this._http.post<PostDto>(`${environment.api}/post/create`, obj);
   }
   updatePost(obj: UpdatePostReq) {
     return this._http.put<string>(`${environment.api}/post/update`, obj);

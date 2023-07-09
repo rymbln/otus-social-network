@@ -13,3 +13,9 @@ export interface PostView {
   friendId: string;
   friendName: string;
 }
+
+export interface PostHubModel {
+  postId: string;
+  postText: string;
+  authorUserId: string;
+}
