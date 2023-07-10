@@ -5,8 +5,6 @@ VisualStudioVersion = 17.5.33312.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OtusSocialNetwork", "OtusSocialNetwork.csproj", "{81ED4A58-F065-4A03-85D1-51D337C3D967}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OtusSignalR", "..\OtusSignalR\OtusSignalR.csproj", "{7EFCEBE7-F7B5-4806-AA04-A1984E97D74F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
