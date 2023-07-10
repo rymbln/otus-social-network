@@ -137,3 +137,59 @@ INSERT INTO public.friends (user_id,friend_id) VALUES
 	 ('b2428a06-ee2a-40b8-94f4-69cd3c85a2e0','3cc744e5-ec95-4926-9a64-aba219819337'),
 	 ('3cc744e5-ec95-4926-9a64-aba219819337','b2428a06-ee2a-40b8-94f4-69cd3c85a2e0'),
 	 ('3cc744e5-ec95-4926-9a64-aba219819337','3eefe556-a733-4ba9-ba28-3e55cc459a79');
+
+
+--- Chat
+
+-- public.chats definition
+
+-- Drop table
+
+-- DROP TABLE public.chats;
+
+CREATE TABLE public.chats (
+	id varchar NOT NULL,
+	"name" varchar NOT NULL,
+	CONSTRAINT chats_pk PRIMARY KEY (id)
+);
+
+-- public.chat_user definition
+
+-- Drop table
+
+-- DROP TABLE public.chat_user;
+
+CREATE TABLE public.chat_user (
+	chat_id varchar NOT NULL,
+	user_id varchar NOT NULL,
+	"timestamp" timestamp NOT NULL,
+	CONSTRAINT chat_user_pk PRIMARY KEY (chat_id, user_id)
+);
+
+
+-- public.chat_user foreign keys
+
+ALTER TABLE public.chat_user ADD CONSTRAINT chat_user_fk FOREIGN KEY (chat_id) REFERENCES public.chats(id);
+ALTER TABLE public.chat_user ADD CONSTRAINT chat_user_fk_1 FOREIGN KEY (user_id) REFERENCES public."user"(id);
+
+
+-- public.messages definition
+
+-- Drop table
+
+-- DROP TABLE public.messages;
+
+CREATE TABLE public.messages (
+	id varchar NOT NULL,
+	chat_id varchar NOT NULL,
+	user_id varchar NOT NULL,
+	message_text varchar NOT NULL,
+	"timestamp" timestamp NOT NULL,
+	CONSTRAINT messages_pk PRIMARY KEY (id)
+);
+
+
+-- public.messages foreign keys
+
+ALTER TABLE public.messages ADD CONSTRAINT messages_fk FOREIGN KEY (chat_id) REFERENCES public.chats(id);
+ALTER TABLE public.messages ADD CONSTRAINT messages_fk_1 FOREIGN KEY (user_id) REFERENCES public."user"(id);
