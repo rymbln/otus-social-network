@@ -25,4 +25,11 @@ public interface IDatabaseContext
     Task<(bool isSuccess, string msg, List<FriendView> data)> SearchFriends(string query);
     Task<(bool isSuccess, string msg)> DeleteFriend(string userId, string friendId);
     Task<(bool isSuccess, string msg)> AddFriend(string userId, string friendId);
+
+    Task<(bool isSuccess, string msg, List<ChatView> chats)> GetChats(string userId);
+    Task<(bool isSuccess, string msg)> CreateChat(string ownerId, string userId);
+    Task<(bool isSuccess, string msg)> DeleteChat(string chatId, string userId);
+    Task<(bool isSuccess, string msg, List<ChatMessageView> messages)> GetMessages(string userId, string chatId);
+    Task<(bool isSuccess, string msg)> CreateMessage(string chatId, string userId, string message);
+
 }

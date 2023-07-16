@@ -381,4 +381,133 @@ public class DatabaseContext : IDatabaseContext, IDisposable
         return (true, "OK", items.ToList());
     }
     #endregion
+
+
+    #region Chats
+
+    public async Task<(bool isSuccess, string msg, List<ChatView> chats)> GetChats(string userId)
+    {
+        await using var con = await db.OpenConnectionAsync();
+
+        var sql = """
+            select 
+            c.id as ChatId, 
+            c.name as ChatName,
+            u.id as UserId,
+            concat(u.first_name || ' ' || u.second_name  ) as UserName
+            from chats c 
+            inner join chat_user cu on cu.chat_id = c.id 
+            inner join "user" u  on u.id = cu.user_id 
+            inner join (
+            	select chat_id, user_id from public.chat_user where user_id = @user_id
+            ) chat_view on chat_view.chat_id = c.id and chat_view.user_id <> cu.user_id
+            """;
+
+        var items = await con.QueryAsync<ChatView>(sql, new { user_id = userId });
+        return (true, "OK", items.ToList());
+    }
+
+    public async Task<(bool isSuccess, string msg)> CreateChat(string ownerId, string userId)
+    {
+        await using var con = await db.OpenConnectionAsync();
+        // Create chatId
+        var chatId = Guid.NewGuid();
+        // Create chat
+        await using var cmd = new NpgsqlCommand(@"INSERT INTO public.chats
+            (id, ""name"")
+            VALUES(@id, @name);
+            ", con)
+        {
+            Parameters =
+                {
+                    new("id", chatId.ToString()),
+                    new("name", $"Chat {DateTime.Now.ToShortDateString()}")
+                }
+        };
+        await cmd.ExecuteNonQueryAsync();
+
+        // Create Chat Members
+        await using var cmd2 = new NpgsqlCommand(@"
+                                        INSERT INTO public.chat_user
+                                        (chat_id, user_id)
+                                        VALUES(@chat_id, @user1), (@chat_id, @user2);
+                                        ", con)
+        {
+            Parameters =
+            {
+                new("chat_id", chatId),
+                new("user1",  ownerId),
+                new("user2", userId)
+            }
+        };
+        await cmd2.ExecuteNonQueryAsync();
+
+        return (true, chatId.ToString());
+    }
+
+    public async Task<(bool isSuccess, string msg)> DeleteChat(string chatId, string userId)
+    {
+        await using var con = await db.OpenConnectionAsync();
+        var sql = "SELECT chat_id from public.chat_user where chat_id = @chat_id and user_id = @userId";
+        var id = await con.ExecuteScalarAsync<string>(sql, new { chat_id = chatId, user_id = userId });
+        if (string.IsNullOrEmpty(id)) return (false, "Not found");
+
+        await using var cmd = new NpgsqlCommand(@"DELETE FROM public.chats WHERE id=@chat_id;", con)
+        {
+            Parameters =              {    new("chat_id", chatId)                }
+        };
+
+        await cmd.ExecuteNonQueryAsync();
+        return (true, "OK");
+    }
+
+    public async Task<(bool isSuccess, string msg, List<ChatMessageView> messages)> GetMessages(string userId, string chatId)
+    {
+        await using var con = await db.OpenConnectionAsync();
+
+        var sql = """
+            SELECT 
+            m.id, 
+            m.chat_id as ChatId, 
+            m.user_id as UserId, 
+            concat(u.first_name || ' ' || u.second_name  ) as UserName,
+            message_text as MessageText, 
+            is_new as IsNew, 
+            "timestamp" as Timestamp
+            FROM public.messages m
+            inner join public."user" u on u.id = m.user_id 
+            inner join chat_user cu on cu.chat_id  = m.chat_id 
+            where cu.user_id = @user_id
+            order by "timestamp";
+            """;
+
+        var items = await con.QueryAsync<ChatMessageView>(sql, new { user_id = userId });
+        return (true, "OK", items.ToList());
+    }
+
+    public async Task<(bool isSuccess, string msg)> CreateMessage(string chatId, string userId, string message)
+    {
+        await using var con = await db.OpenConnectionAsync();
+        // Create chatId
+        var messageId = Guid.NewGuid();
+        // Create chat
+        await using var cmd = new NpgsqlCommand(@"INSERT INTO public.messages
+            (id, chat_id, user_id, message_text, is_new, ""timestamp"")
+            VALUES(@id, @chatId, @userId, @message, true, @date);
+            ", con)
+        {
+            Parameters =
+                {
+                    new("id", messageId),
+                    new("chatId", chatId),
+                    new("userId", userId),
+                    new("message", message),
+                    new("date", DateTime.Now)
+                }
+        };
+        await cmd.ExecuteNonQueryAsync();
+
+        return (true, messageId.ToString());
+    }
+    #endregion
 }

@@ -79,7 +79,7 @@ create or replace function lipsum( quantity_ integer ) returns character varying
 $$;
 
 INSERT INTO public.posts (id, author_user_id, post_text, "timestamp")
-select uuid_generate_v4()::varchar as id, 
+select uuid_generate_v4()::varchar as id,
 '3cc744e5-ec95-4926-9a64-aba219819337' as author_id,
 lipsum(trunc(random()*100)::int) as post_text,
 timestamp '2023-06-10 20:00:00' +
@@ -89,18 +89,18 @@ from generate_series(1,1000)
 ;
 
 INSERT INTO public.posts (id, author_user_id, post_text, "timestamp")
-select uuid_generate_v4()::varchar as id, 
+select uuid_generate_v4()::varchar as id,
 'b2428a06-ee2a-40b8-94f4-69cd3c85a2e0' as author_id,
 lipsum(trunc(random()*100)::int) as post_text,
 timestamp '2023-06-10 20:00:00' +
        random() * (timestamp '2023-01-20 20:00:00' -
                    timestamp '2023-05-10 10:00:00') as timestamp_val
 from generate_series(1,1000)
-;       
+;
 
 
 INSERT INTO public.posts (id, author_user_id, post_text, "timestamp")
-select uuid_generate_v4()::varchar as id, 
+select uuid_generate_v4()::varchar as id,
 '3eefe556-a733-4ba9-ba28-3e55cc459a79' as author_id,
 lipsum(trunc(random()*100)::int) as post_text,
 timestamp '2023-06-10 20:00:00' +
@@ -108,7 +108,7 @@ timestamp '2023-06-10 20:00:00' +
                    timestamp '2023-05-10 10:00:00') as timestamp_val
 from generate_series(1,1000)
 ;
-        
+
 
 
 
@@ -162,7 +162,6 @@ CREATE TABLE public.chats (
 CREATE TABLE public.chat_user (
 	chat_id varchar NOT NULL,
 	user_id varchar NOT NULL,
-	"timestamp" timestamp NOT NULL,
 	CONSTRAINT chat_user_pk PRIMARY KEY (chat_id, user_id)
 );
 
@@ -184,6 +183,7 @@ CREATE TABLE public.messages (
 	chat_id varchar NOT NULL,
 	user_id varchar NOT NULL,
 	message_text varchar NOT NULL,
+	is_new boolean NOT NULL,
 	"timestamp" timestamp NOT NULL,
 	CONSTRAINT messages_pk PRIMARY KEY (id)
 );
