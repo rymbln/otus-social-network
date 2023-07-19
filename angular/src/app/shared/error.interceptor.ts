@@ -3,11 +3,13 @@ import { AuthService } from "../auth.service";
 import { Router } from "@angular/router";
 import { Observable, catchError, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
+import { MessageService } from "primeng/api";
 
 @Injectable()
 export class ErrorInterceptor implements HttpInterceptor {
     constructor(
       private auth: AuthService,
+      private msg: MessageService,
       private router: Router,
       ) { }
 
@@ -30,6 +32,7 @@ export class ErrorInterceptor implements HttpInterceptor {
             console.error(err);
             let error: string = (err && err.error && err.error.message) || err.statusText;
             console.error(error);
+            this.msg.add({ severity: 'error', summary: 'Error', detail: err.error.message })
             if (error.startsWith("IDX10223")) {
               this.auth.logout();
             }

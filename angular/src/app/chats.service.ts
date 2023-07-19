@@ -28,4 +28,10 @@ export class ChatsService {
   sendMessages(id: string, form: ChatMessageForm) {
     return this._http.post<string>(`${environment.api}/chat/${id}/messages`, form);
   }
+  deleteMessage(chatId: string, messageId: string) {
+    return this._http.delete(`${environment.api}/chat/${chatId}/messages/${messageId}`);
+  }
+  deleteChat(chatId: string) {
+    return this._http.delete(`${environment.api}/chat/${chatId}`);
+  }
 }

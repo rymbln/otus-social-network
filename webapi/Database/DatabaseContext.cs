@@ -509,5 +509,21 @@ public class DatabaseContext : IDatabaseContext, IDisposable
 
         return (true, messageId.ToString());
     }
+
+    public async Task<(bool isSuccess, string msg)> DeleteMessage(string chatId, string userId, string messageId)
+    {
+        await using var con = await db.OpenConnectionAsync();
+        var sql = "SELECT chat_id from public.chat_user where chat_id = @chat_id and user_id = @user_id";
+        var id = await con.ExecuteScalarAsync<string>(sql, new { chat_id = chatId, user_id = userId });
+        if (string.IsNullOrEmpty(id)) return (false, "Not found");
+
+        await using var cmd = new NpgsqlCommand(@"DELETE FROM public.messages WHERE id=@message_id and chat_id = @chat_id;", con)
+        {
+            Parameters = { new("chat_id", chatId), new ("message_id", messageId) }
+        };
+
+        await cmd.ExecuteNonQueryAsync();
+        return (true, "OK");
+    }
     #endregion
 }

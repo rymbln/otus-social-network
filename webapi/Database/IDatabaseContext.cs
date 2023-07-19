@@ -32,4 +32,6 @@ public interface IDatabaseContext
     Task<(bool isSuccess, string msg, List<ChatMessageView> messages)> GetMessages(string userId, string chatId);
     Task<(bool isSuccess, string msg)> CreateMessage(string chatId, string userId, string message);
 
+    Task<(bool isSuccess, string msg)> DeleteMessage(string chatId, string userId, string messageId);
+
 }

@@ -12,6 +12,19 @@ public interface ITarantoolService
     Task<List<PostDto>> ReadPosts(string userId);
     Task AddUserSocket(string userId, string connectionId);
     Task DeleteUserSocket(string userId, string connectionId);
+
+    Task AddUserChatSocket(string userId, string connectionId);
+    Task DeleteUserChatSocket(string userId);
+    Task<List<ChatSocket>> GetUserChatSockets(string userId);
+
+    Task<List<ChatItem>> GetChats(string userId);
+    Task CreateChat(string id, string name, List<string> userIds);
+    Task DeleteChat(string id);
+
+    Task AddMessage(string id, string chatId, string userId, string message);
+    Task DeleteMessage(string id);
+    Task<List<ChatMessageItem>> GetMessages(string chatId);
+
     Task<List<string>> GetConnectedUsers(List<string> userIds);
 }
 

@@ -34,8 +34,6 @@
     <Folder Include="Specs\" />
     <Folder Include="Tarantool\" />
     <Folder Include="DataClasses\Notifications\" />
-    <Folder Include="Consumers\" />
-    <Folder Include="SignalHub\" />
   </ItemGroup>
 
   <ItemGroup>

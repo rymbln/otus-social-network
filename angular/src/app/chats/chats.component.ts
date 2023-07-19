@@ -1,13 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest, map, of, shareReplay, switchMap, tap } from 'rxjs';
 import { ChatsService } from '../chats.service';
 import { ChatDTO, ChatMessageForm, ChatMessageView, ChatView } from '../model/chat.dto';
 import { FriendDto } from '../model/friend.model';
 import { FriendService } from '../friend.service';
-import { SelectItem } from 'primeng/api';
+import { ConfirmationService, SelectItem } from 'primeng/api';
 import { CreateChatReq } from '../model/create-chat.req';
 import { AuthService } from '../auth.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { ScrollPanel } from 'primeng/scrollpanel';
 
 @UntilDestroy()
 @Component({
@@ -16,18 +17,20 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
   styleUrls: ['./chats.component.scss']
 })
 export class ChatsComponent {
+@ViewChild("msgScroll") msgScroll: ScrollPanel | undefined;
 
   isShowDialog = false;
   message: string = '';
 
-  private _refresh = new BehaviorSubject<boolean>(false);
+  private _refreshChat = new BehaviorSubject<boolean>(false);
+  private _refreshMessage = new BehaviorSubject<boolean>(false);
   private _selectedChat = new BehaviorSubject<ChatView | undefined>(undefined);
 
   get selectedChat() {
     return this._selectedChat.value;
   }
 
-  chats$: Observable<ChatView[]> = this._refresh.asObservable().pipe(
+  chats$: Observable<ChatView[]> = this._refreshChat.asObservable().pipe(
     switchMap(e => this._srv.getAll()),
     tap(data => {
       this.friendsFromChat = data.map(o => o.userId);
@@ -37,15 +40,21 @@ export class ChatsComponent {
 
   messages$: Observable<ChatMessageView[]> = combineLatest([
     this._selectedChat.asObservable(),
-    this._refresh.asObservable()
+    this._refreshMessage.asObservable(),
+    this._selectedChat.asObservable()
   ]).pipe(
       map(data => data[0]),
+      tap(data => console.log(data)),
       switchMap(chat => {
+
         if (chat) {
           return this._srv.getMessages(chat?.chatId)
         } else {
           return of([])
         }
+      }),
+      tap(data => { console.log(data);
+        this.msgScroll?.scrollTop(10000);
       }),
       shareReplay()
   )
@@ -53,7 +62,7 @@ export class ChatsComponent {
 
 
   friends$: Observable<SelectItem[]> = combineLatest([
-    this._refresh.asObservable(),
+    this._refreshChat.asObservable(),
     this.chats$
   ]).pipe(
     switchMap(e => this._srvFriends.getFriends()),
@@ -68,8 +77,9 @@ export class ChatsComponent {
     private _srv: ChatsService,
     private _srvFriends: FriendService,
     private auth: AuthService,
+    private confirm: ConfirmationService,
   ) {
-    this._refresh.next(true);
+    this._refreshChat.next(true);
   }
 
   onNew(chats: ChatView[]) {
@@ -84,13 +94,13 @@ export class ChatsComponent {
     this._srv.create(form).pipe(
       untilDestroyed(this),
       tap(data =>  {
-        this._refresh.next(true);
+        this._refreshChat.next(true);
         this.isShowDialog = false;
       })
     ).subscribe();
   }
   onRefresh() {
-    this._refresh.next(true);
+    this._refreshChat.next(true);
   }
   onSelectChat(chat: ChatView) {
     this._selectedChat.next(chat);
@@ -101,8 +111,40 @@ export class ChatsComponent {
       untilDestroyed(this),
       tap(data => {
         this.message = '';
-        this._refresh.next(true);
+        this._refreshMessage.next(true);
+
       })
     ).subscribe();
+  }
+
+  onDeleteMessage(chatId: string, messageId: string) {
+    this.confirm.confirm({
+      message: `Are you sure you want to delete message?`,
+      header: `Confirm delete`,
+      icon: 'pi pi-info-circle',
+      accept: () => {
+        this._srv.deleteMessage(chatId, messageId).pipe(
+          untilDestroyed(this),
+          tap(e => this._refreshMessage.next(true))
+        ).subscribe()
+      },
+    });
+  }
+
+  onDeleteChat(chatId: string) {
+    this.confirm.confirm({
+      message: `Are you sure you want to delete chat?`,
+      header: `Confirm delete`,
+      icon: 'pi pi-info-circle',
+      accept: () => {
+        this._srv.deleteChat(chatId).pipe(
+          untilDestroyed(this),
+          tap(e => {
+            this._selectedChat.next(undefined);
+            this._refreshChat.next(true);
+          })
+        ).subscribe()
+      },
+    });
   }
 }

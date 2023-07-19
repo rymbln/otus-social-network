@@ -18,8 +18,8 @@
       <p-scrollPanel [style]="{ width: '100%', height: '400px' }">
       <p-dataView #dv [value]="chats">
         <ng-template let-chat pTemplate="listItem">
-          <a class="col-12" style="cursor: pointer" [ngClass]=" { 'selected' : chat.chatId === selectedChat?.chatId}" (click)="onSelectChat(chat)">
-            <div class="w-100 border m-1 p-3">
+          <a class="col-12" style="cursor: pointer"  (click)="onSelectChat(chat)">
+            <div class="w-100 border m-1 p-3" [ngClass]=" { 'selected' : chat.chatId === selectedChat?.chatId}">
               {{ chat.chatName }} ({{ chat.userName}})
             </div>
           </a>
@@ -31,16 +31,19 @@
 
   <div class="col-6" *ngIf="selectedChat">
     <p-card [header]="'Messages of ' + selectedChat.chatName + ' / ' + selectedChat.userName" *ngIf="messages$ | async as messages">
-      <p-scrollPanel [style]="{ width: '100%', height: '300px' }">
+      <p-scrollPanel #msgScroll [style]="{ width: '100%', height: '300px' }">
 
 
       <p-dataView #dvm [value]="messages">
         <ng-template let-message pTemplate="listItem">
           <div class="col-12">
-            <div class="w-100 border m-1 p-3">
-              <strong>{{ message.userName}}</strong>
-              <p>{{ message.messageText}}</p>
-              <small>{{ message.timestamp }}</small>
+            <div class="flex w-100 border m-1 p-3">
+                <div class="flex flex-column flex-grow-1">
+                <strong>{{ message.userName}}</strong>
+                <p>{{ message.messageText}}</p>
+                <small>{{ message.timestamp }}</small>
+              </div>
+              <button pButton icon="pi pi-trash" class="p-button-danger" (click)="onDeleteMessage(selectedChat.chatId, message.id)"></button>
             </div>
           </div>
           <!-- <pre>{{ message | json }}</pre> -->
@@ -52,8 +55,11 @@
           <div class="col-8">
             <textarea rows="2" cols="30" class="w-full" pInputTextarea [(ngModel)]="message"></textarea>
           </div>
-          <div class="col-4">
+          <div class="col-2">
             <button pButton label="Send" (click)="onSend()"></button>
+          </div>
+          <div class="col-2">
+            <button pButton label="Delete Chat" class="p-button-danger" (click)="onDeleteChat(selectedChat.chatId)"></button>
           </div>
         </div>
       </ng-template>
