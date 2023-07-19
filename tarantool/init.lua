@@ -266,27 +266,30 @@ function delete_post(postid)
 end
 
 function get_chats_for_user(userid)
-    chats_and_users = box.space.chats_and_users
-    chats_and_users_idx_user = chats_and_users.index.chats_and_users_userid_idx
-    chats_and_users_idx_chat = chats_and_users.index.chats_and_users_chatid_idx
-    -- Get Chats for users
-    result_chat_users = chats_and_users_idx_user:select(userid)
-    chats = box.space.chats
-    results = {}
-    for _, val in ipairs(result_chat_users) do
-        item_chat = chats:get(val.chatid)
-        item_chat_users = chats_and_users_idx_chat:select(val.chatid)
-        userids = {}
-        if item_chat_users ~= nil then
-            for _, item_chat_user in ipairs(item_chat_users) do
-                table.insert(userids, item_chat_user.userid)
+    log.info("get_chats_for_user:" .. userid)
+    local chats_and_users = box.space['chats_and_users']
+    local chats_and_users_idx_user = chats_and_users.index.chats_and_users_userid_idx
+    local chats_and_users_idx_chat = chats_and_users.index.chats_and_users_chatid_idx
+    local chats = box.space.chats
+    local results = {}
+    local result_chat_users = chats_and_users_idx_user:select(userid)
+    if result_chat_users ~= nil then
+        for idx, val in ipairs(result_chat_users) do
+            local item_chat = chats:get(val.chatid)
+            local item_chat_users = chats_and_users_idx_chat:select(val.chatid)
+            local userids = {}
+            if item_chat_users ~= nil then
+                for _, item_chat_user in ipairs(item_chat_users) do
+                    table.insert(userids, item_chat_user.userid)
+                end
+            end
+            if item_chat ~= nil then
+                tuple_item = box.tuple.new{item_chat.id, item_chat.name, userids}
+                results[idx] = tuple_item
             end
         end
-        if item_chat ~= nil then
-            tuple_item = box.tuple.new{item_chat.id, item_chat.name, userids}
-            table.insert(results, tuple_item)
-        end
     end
+    log.info(results)
     return results
 end
 
@@ -302,17 +305,18 @@ end
 
 function delete_chat(id)
     -- Delete chat
-    local space = box.space.chats
-    local tuple = space:get(id)
-    if tuple ~= nil then
-        tuple:delete()
+    local chats = box.space.chats
+    local chat_index = chats.index.chat_primary
+    local chatresult = chat_index:select(id)
+    for _,tuple in pairs(chatresult) do
+        chats:delete(tuple[1])
     end
     -- Delete chats and users
     local chats_and_users = box.space.chats_and_users
     local index = space.index.chats_and_users_chatid_idx
-    local result = index:select(chatid)
+    local result = index:select(id)
     for _,tuple in pairs(result) do
-        tuple:delete()
+        chats_and_users:delete(tuple[1])
     end
     -- Delete messages for chat
     delete_messages_by_chatid(id)
@@ -339,13 +343,15 @@ function create_message(id, chatid, userid, messagetext, timestamp)
 end
 
 function delete_message(id)
+    log.info("delete_message:"..id)
     -- Get the space object
     local space = box.space.messages
-
+    local index = space.index.message_primary
     -- Find the tuple with the specified ID and delete it
-    local tuple = space:get(id)
-    if tuple ~= nil then
-        tuple:delete()
+    local result =  index:select(id)
+    for _,tuple in pairs(result) do
+        log.info(tuple)
+        space:delete(tuple[1])
     end
 end
 
@@ -353,20 +359,10 @@ function delete_messages_by_chatid(chatid)
     -- Get the space and index objects
     local space = box.space.messages
     local index = space.index.message_chatid_secondary
-
-    -- Define the range for the index lookup
-    -- local start_key = {chatid}
-    -- local end_key = {chatid, box.NULL}
-
-    -- Iterate over the messages with the specific chatid and delete them
-    -- local tuples = index:select_range(start_key, end_key)
-    -- for _, tuple in ipairs(tuples) do
-    --     tuple:delete()
-    -- end
     local result = index:select(chatid)
     -- Iterate over the tuples in the index
     for _,tuple in pairs(result) do
-        tuple:delete()
+        space:delete(tuple[1])
     end
 end
 
@@ -381,9 +377,8 @@ function delete_chatsockets_by_user(userid)
     local index = space.index.chatsockets_idx_userid
     -- Select tuples by index value
     local result = index:select(userid)
-
     for _,tuple in pairs(result) do
-        tuple:delete()
+        space:delete(tuple[1])
     end
 end
 
@@ -392,9 +387,8 @@ function delete_chatsockets_by_connection(connectionid)
     local index = space.index.chatsockets_idx_connectionid
     -- Select tuples by index value
     local result = index:select(userid)
-
     for _,tuple in pairs(result) do
-        tuple:delete()
+        space:delete(tuple[1])
     end
 end
 
@@ -410,22 +404,50 @@ end
 function data()
     local chats = box.space.chats
     local chats_and_users = box.space.chats_and_users
+    local messages = box.space.messages
 
     -- Define the values for the new chat item
     local id = "b65ec3ae-cc92-4ad2-a6a6-1340503a648e"
     local name = "Chat Name"
     local user_ids = { "b2428a06-ee2a-40b8-94f4-69cd3c85a2e0", "3cc744e5-ec95-4926-9a64-aba219819337" }
 
-    -- Insert the new chat item
-    log.info("before insert empty array")
-    chats:insert({ id, name })
-    -- uuid.str()
-    log.info("before insert filled array")
-    chats_and_users:insert(
-        { "1", "b65ec3ae-cc92-4ad2-a6a6-1340503a648e", "b2428a06-ee2a-40b8-94f4-69cd3c85a2e0"})
-    chats_and_users:insert(
-        { "2", "b65ec3ae-cc92-4ad2-a6a6-1340503a648e", "3cc744e5-ec95-4926-9a64-aba219819337" }
-    )
+    if chats:len() == 0 then
+        -- Insert the new chat item
+        chat_id_str = "b65ec3ae-cc92-4ad2-a6a6-1340503a648e"
+        user_ids_str = {"b2428a06-ee2a-40b8-94f4-69cd3c85a2e0", "3cc744e5-ec95-4926-9a64-aba219819337"}
+        chats:insert({ id, name })
+        -- uuid.str()
+        chats_and_users:insert(
+            { "1", chat_id_str, user_ids_str[1]})
+        chats_and_users:insert(
+            { "2", chat_id_str, user_ids_str[2] }
+        )
+        log.info("chat created")
+    end
+    if messages:len() == 0 then
+        -- insert messages
+        for i = 1,1000,1 do
+            for j = 1,2,1 do
+                messages:insert({uuid.str(), chat_id_str, user_ids_str[j],
+                'some interesting message number ' .. i .. ' from ' .. user_ids_str[j], os.date("!%Y-%m-%dT%H:%M:%SZ") })
+            end
+        end
+        log.info("messages created")
+    end
+
+    -- local status, result = pcall(function()
+    --     get_chats_for_user("3cc744e5-ec95-4926-9a64-aba219819337")
+    -- end)
+
+    -- print(status, result)
+
+    -- if status then
+    --     -- Success: handle the result
+    --     print(result)
+    -- else
+    --     -- Error: handle the error message
+    --     print("Error occurred:", result)
+    -- end
 end
 
 box.once('init', init)

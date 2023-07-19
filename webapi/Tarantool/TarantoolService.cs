@@ -12,8 +12,10 @@ using ProGaudi.Tarantool.Client.Model.Headers;
 using ProGaudi.Tarantool.Client.Model.UpdateOperations;
 using System.Reflection;
 using ProGaudi.Tarantool.Client.Model.Responses;
+using MsgPack;
 
 namespace OtusSocialNetwork.Tarantool;
+
 
 public class TarantoolService: ITarantoolService, IDisposable
 {
@@ -208,18 +210,22 @@ public class TarantoolService: ITarantoolService, IDisposable
         await box.Call("add_chatsocket", TarantoolTuple.Create(Guid.NewGuid().ToString(), userId, connectionId));
     }
 
+
     public async Task<List<ChatItem>> GetChats(string userId)
     {
         var res = new List<ChatItem>();
 
-        var data = await box.Call<TarantoolTuple<string>, TarantoolTuple<string, string, string[]>>(
+        var data = await box.Call<TarantoolTuple<string>, TarantoolTuple<string, string, string[]>[]> (
              "get_chats_for_user",
              TarantoolTuple.Create(userId)
             );
         foreach (var item in data.Data)
         {
-            var obj = new ChatItem(item.Item1, item.Item2, item.Item3);
-            res.Add(obj);
+            foreach (var el in item)
+            {
+                var obj = new ChatItem(el.Item1, el.Item2, el.Item3);
+                res.Add(obj);
+            }
         }
         return res;
     }
@@ -236,7 +242,7 @@ public class TarantoolService: ITarantoolService, IDisposable
 
     public async Task AddMessage(string id, string chatId, string userId, string message)
     {
-        await box.Call("create_message", TarantoolTuple.Create(id, chatId, userId, message, DateTime.Now.ToUniversalTime()));
+        await box.Call("create_message", TarantoolTuple.Create(id, chatId, userId, message, DateTime.Now.ToUniversalTime().ToString()));
     }
 
     public async Task DeleteMessage(string id)
@@ -248,14 +254,18 @@ public class TarantoolService: ITarantoolService, IDisposable
     {
         var res = new List<ChatMessageItem>();
 
-        var data = await box.Call<TarantoolTuple<string>, TarantoolTuple<string, string, string, string, string>>(
+        var data = await box.Call<TarantoolTuple<string>, TarantoolTuple<string, string, string, string, string>[]>(
              "get_messages_for_chat",
              TarantoolTuple.Create(chatId)
             );
         foreach (var item in data.Data)
         {
-            var obj = new ChatMessageItem(item.Item1, item.Item2, item.Item3, item.Item4, item.Item5);
-            res.Add(obj);
+            foreach (var el in item)
+            {
+                var obj = new ChatMessageItem(el.Item1, el.Item2, el.Item3, el.Item4, el.Item5);
+                res.Add(obj);
+            }
+          
         }
         return res;
     }

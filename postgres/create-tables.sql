@@ -153,6 +153,10 @@ CREATE TABLE public.chats (
 	CONSTRAINT chats_pk PRIMARY KEY (id)
 );
 
+INSERT INTO public.chats
+(id, "name")
+VALUES('b65ec3ae-cc92-4ad2-a6a6-1340503a648e', 'Chat Name');
+
 -- public.chat_user definition
 
 -- Drop table
@@ -166,10 +170,17 @@ CREATE TABLE public.chat_user (
 );
 
 
+INSERT INTO public.chat_user
+(chat_id, user_id)
+VALUES('b65ec3ae-cc92-4ad2-a6a6-1340503a648e', 'b2428a06-ee2a-40b8-94f4-69cd3c85a2e0'),
+('b65ec3ae-cc92-4ad2-a6a6-1340503a648e', '3cc744e5-ec95-4926-9a64-aba219819337');
+
+
 -- public.chat_user foreign keys
 
 ALTER TABLE public.chat_user ADD CONSTRAINT chat_user_fk FOREIGN KEY (chat_id) REFERENCES public.chats(id);
 ALTER TABLE public.chat_user ADD CONSTRAINT chat_user_fk_1 FOREIGN KEY (user_id) REFERENCES public."user"(id);
+
 
 
 -- public.messages definition
@@ -193,3 +204,31 @@ CREATE TABLE public.messages (
 
 ALTER TABLE public.messages ADD CONSTRAINT messages_fk FOREIGN KEY (chat_id) REFERENCES public.chats(id);
 ALTER TABLE public.messages ADD CONSTRAINT messages_fk_1 FOREIGN KEY (user_id) REFERENCES public."user"(id);
+
+
+INSERT INTO public.messages
+(id, chat_id, user_id, message_text, is_new, "timestamp")
+select
+uuid_generate_v4()::varchar as id,
+'b65ec3ae-cc92-4ad2-a6a6-1340503a648e' as chat_id,
+'b2428a06-ee2a-40b8-94f4-69cd3c85a2e0' as user_id,
+lipsum(trunc(random()*100)::int) as message_text,
+false as is_new,
+timestamp '2023-06-10 20:00:00' +
+       random() * (timestamp '2023-01-20 20:00:00' -
+                   timestamp '2023-05-10 10:00:00') as timestamp_val
+from generate_series(1,500)
+;
+INSERT INTO public.messages
+(id, chat_id, user_id, message_text, is_new, "timestamp")
+select
+uuid_generate_v4()::varchar as id,
+'b65ec3ae-cc92-4ad2-a6a6-1340503a648e' as chat_id,
+'3cc744e5-ec95-4926-9a64-aba219819337' as user_id,
+lipsum(trunc(random()*100)::int) as message_text,
+false as is_new,
+timestamp '2023-06-10 20:00:00' +
+       random() * (timestamp '2023-01-20 20:00:00' -
+                   timestamp '2023-05-10 10:00:00') as timestamp_val
+from generate_series(1,500)
+;
