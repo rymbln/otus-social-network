@@ -113,10 +113,14 @@ public class PostController : ControllerBase
 		var friends = await _db.GetFriends(_auth.UserId);
         if (!friends.isSuccess) return BadRequest(new ErrorRes(friends.msg));
 
-		// Write to tarantool
-		await _rabbit.Publish<INotificationFeedAdd>(
-			new NotificationFeedAdd(friends.data.Select(o => o.Id).ToList(), postId, postDto)
-			);
+		// Get count of friens. If more than 1000, update feed
+		if (friends.data.Count >= 1000)
+		{
+			// Write to tarantool
+			await _rabbit.Publish<INotificationFeedAdd>(
+				new NotificationFeedAdd(friends.data.Select(o => o.Id).ToList(), postId, postDto)
+				);
+		}
 
 		return Ok(postDto);
 	}
@@ -133,11 +137,18 @@ public class PostController : ControllerBase
         if (!post.isSuccess) return BadRequest(new ErrorRes(post.msg));
         var postDto = _mapper.Map<PostDto>(post.post);
 
-        // Write to tarantool
-        await _rabbit.Publish<INotificationFeedUpdate>(
-            new NotificationFeedUpdate(req.Id, postDto)
-            );
+        // Get Friends
+        var friends = await _db.GetFriends(_auth.UserId);
+        if (!friends.isSuccess) return BadRequest(new ErrorRes(friends.msg));
+		// Get count of friens. If more than 1000, update feed
+		if (friends.data.Count >= 1000)
+		{
 
+			// Write to tarantool
+			await _rabbit.Publish<INotificationFeedUpdate>(
+			new NotificationFeedUpdate(req.Id, postDto)
+			);
+		}
         return Ok(new DefaultRes(res.msg));
     }
 
@@ -150,11 +161,17 @@ public class PostController : ControllerBase
 		var res = await _db.DeletePost(id, _auth.UserId);
         if (!res.isSuccess) return BadRequest(new ErrorRes(res.msg));
 
-        // Write to tarantool
-        await _rabbit.Publish<INotificationFeedDelete>(
-            new NotificationFeedDelete(id)
-            );
-
+        // Get Friends
+        var friends = await _db.GetFriends(_auth.UserId);
+        if (!friends.isSuccess) return BadRequest(new ErrorRes(friends.msg));
+		// Get count of friens. If more than 1000, update feed
+		if (friends.data.Count >= 1000)
+		{
+			// Write to tarantool
+			await _rabbit.Publish<INotificationFeedDelete>(
+			new NotificationFeedDelete(id)
+			);
+		}
         return Ok(new DefaultRes(res.msg));
     }
 }
