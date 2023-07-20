@@ -27,3 +27,10 @@ export class ChatMessageForm {
     public message: string
   ){}
 }
+
+
+export interface MessageHubModel {
+  userId: string;
+  chatName: string;
+  message: string;
+}

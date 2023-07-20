@@ -14,9 +14,10 @@ public interface ITarantoolService
     Task DeleteUserSocket(string userId, string connectionId);
 
     Task AddUserChatSocket(string userId, string connectionId);
-    Task DeleteUserChatSocket(string userId);
+    Task DeleteUserChatSocket(string connectionId);
     Task<List<ChatSocket>> GetUserChatSockets(string userId);
 
+    Task<ChatItem> GetChat(string chatId);
     Task<List<ChatItem>> GetChats(string userId);
     Task CreateChat(string id, string name, List<string> userIds);
     Task DeleteChat(string id);

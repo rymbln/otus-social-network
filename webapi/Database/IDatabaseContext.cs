@@ -26,6 +26,7 @@ public interface IDatabaseContext
     Task<(bool isSuccess, string msg)> DeleteFriend(string userId, string friendId);
     Task<(bool isSuccess, string msg)> AddFriend(string userId, string friendId);
 
+    Task<(bool isSuccess, string msg, ChatView chat)> GetChat(string chatId, string userId);
     Task<(bool isSuccess, string msg, List<ChatView> chats)> GetChats(string userId);
     Task<(bool isSuccess, string msg)> CreateChat(string ownerId, string userId);
     Task<(bool isSuccess, string msg)> DeleteChat(string chatId, string userId);

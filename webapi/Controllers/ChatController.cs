@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 
+using Confluent.Kafka;
+
 using MassTransit;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -15,6 +17,8 @@ using OtusSocialNetwork.Services;
 using OtusSocialNetwork.SignalHub;
 using OtusSocialNetwork.Tarantool;
 
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 namespace OtusSocialNetwork.Controllers;
 
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
@@ -27,7 +31,7 @@ public class ChatController : ControllerBase
     private readonly ITarantoolService _tarantool;
     private readonly IMapper _mapper;
     private readonly IPublishEndpoint _rabbit;
-    private readonly IHubContext<ChatHubPostgres> _hub;
+    private readonly IHubContext<ChatHub> _hub;
     private readonly IConfiguration _config;
     private readonly bool _isPostgres;
 
@@ -37,7 +41,7 @@ public class ChatController : ControllerBase
         IMapper mapper,
         IPublishEndpoint rabbit,
         IConfiguration config,
-        IHubContext<ChatHubPostgres> hub)
+        IHubContext<ChatHub> hub)
     {
         _auth = auth;
         _db = db;
@@ -50,10 +54,10 @@ public class ChatController : ControllerBase
     }
 
     [HttpGet]
-    [Route("/feed/sended")]
+    [Route("/feed")]
     public IActionResult Get()
     {
-        _hub.Clients.All.SendAsync("Posted", DataManager.GetData());
+       // _hub.Clients.All.SendAsync("Posted", DataManager.GetData());
         return Ok(new { Message = "Request Completed" });
     }
 
@@ -126,20 +130,45 @@ public class ChatController : ControllerBase
                 res.Add(new ChatMessageView(item.Id, item.ChatId, item.UserId, string.Empty, item.Message, false, item.Timestamp));
             }
         }
-        return Ok(res);
+        return Ok(res.OrderBy(o => o.Timestamp));
     }
 
     [HttpPost("{chatId}/messages")]
     public async Task<IActionResult> SendMessages(string chatId, ChatMessageForm form)
     {
+        var chatName = string.Empty;
+        var messageText = form.Message;
+        var correspondent = string.Empty;
+        
         if (_isPostgres)
         {
+            var chat = await _db.GetChat(chatId, _auth.UserId);
+            if (chat.chat != null)
+            {
+                chatName = chat.chat.ChatName;
+                correspondent = chat.chat.UserId;
+            }
             var res = await _db.CreateMessage(chatId, _auth.UserId, form.Message);
             if (!res.isSuccess) return BadRequest(new ErrorRes(res.msg));
         }
         else
         {
+            var chat = await _tarantool.GetChat(chatId);
+            if (chat != null)
+            {
+                chatName = chat.Name;
+                correspondent = chat.UserIds.Where( o => o != _auth.UserId).FirstOrDefault() ?? string.Empty;
+            }
             await _tarantool.AddMessage(Guid.NewGuid().ToString(), chatId, _auth.UserId, form.Message);
+        }
+
+        // Send notifications
+      
+        var connections = await _tarantool.GetUserChatSockets(correspondent);
+        if (connections.Count > 0)
+        {
+            var connIds = connections.Select(x => x.ConnectionId).ToList();
+            await _hub.Clients.Clients(connIds).SendAsync("Received", new MessageHubModel(correspondent, chatName, messageText));
         }
         return Ok();
     }

@@ -526,5 +526,27 @@ public class DatabaseContext : IDatabaseContext, IDisposable
         await cmd.ExecuteNonQueryAsync();
         return (true, "OK");
     }
+
+    public async Task<(bool isSuccess, string msg, ChatView chat)> GetChat(string chatId, string userId)
+    {
+        await using var con = await db.OpenConnectionAsync();
+
+        var sql = """
+            select
+            c.id as ChatId, 
+            c.name as ChatName,
+            u.id as UserId,
+            concat(u.first_name || ' ' || u.second_name  ) as UserName
+            from chats c 
+            inner join chat_user cu on cu.chat_id = c.id 
+            inner join "user" u  on u.id = cu.user_id 
+            inner join (
+            	select chat_id, user_id from public.chat_user where user_id = @user_id and chat_id = @chat_id
+            ) chat_view on chat_view.chat_id = c.id and chat_view.user_id <> cu.user_id
+            """;
+
+        var items = await con.QueryAsync<ChatView>(sql, new { chat_id = chatId, user_id = userId });
+        return (true, "OK", items.FirstOrDefault());
+    }
     #endregion
 }

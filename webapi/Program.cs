@@ -102,7 +102,7 @@ builder.Services.AddAuthentication(options =>
                 // If the request is for our hub...
                 var path = context.HttpContext.Request.Path;
                 if (!string.IsNullOrEmpty(accessToken) &&
-                    (path.StartsWithSegments("/post/feed/posted")))
+                    (path.StartsWithSegments("/post/feed/posted") || path.StartsWithSegments("/chat/feed")))
                 {
                     // Read the token out of the query string
                     context.Token = accessToken;
@@ -193,6 +193,7 @@ app.UseMiddleware<ErrorHandlerMiddleware>();
 //app.UseRouting();
 app.MapControllers();
 app.MapHub<PostHub>("/post/feed/posted");
+app.MapHub<ChatHub>("/chat/feed");
 //app.MapHub<ChartHub>("/chart");
 
 app.Run();

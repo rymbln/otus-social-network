@@ -9,6 +9,7 @@ import { CreateChatReq } from '../model/create-chat.req';
 import { AuthService } from '../auth.service';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { ScrollPanel } from 'primeng/scrollpanel';
+import { ChatNotificationService } from '../chat-notification.service';
 
 @UntilDestroy()
 @Component({
@@ -78,6 +79,7 @@ export class ChatsComponent {
     private _srvFriends: FriendService,
     private auth: AuthService,
     private confirm: ConfirmationService,
+    private notify: ChatNotificationService
   ) {
     this._refreshChat.next(true);
   }

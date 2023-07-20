@@ -6,6 +6,7 @@ import { PostHotificationService } from './post-hotification.service';
 import { environment } from 'src/environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { ChatNotificationService } from './chat-notification.service';
 
 @UntilDestroy()
 @Component({
@@ -82,6 +83,7 @@ export class AppComponent  implements OnInit {
   constructor(
     private auth: AuthService,
     private signal: PostHotificationService,
+    private signalChat: ChatNotificationService,
     private message: MessageService,
     private http: HttpClient
   ) {
@@ -92,6 +94,8 @@ export class AppComponent  implements OnInit {
         if (auth) {
           this.signal.startConnection();
           this.signal.addPostNotificationListener();
+          this.signalChat.startConnection();
+          this.signalChat.addChatNotificationListener();
         }
       }),
       shareReplay()).subscribe();

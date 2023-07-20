@@ -42,6 +42,7 @@ import { ChatsComponent } from './chats/chats.component';
 import { DataViewModule, DataViewLayoutOptions } from 'primeng/dataview';
 import { DropdownModule } from 'primeng/dropdown';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
+import { ChatNotificationService } from './chat-notification.service';
 
 @NgModule({
   declarations: [
@@ -84,7 +85,9 @@ import { ScrollPanelModule } from 'primeng/scrollpanel';
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
     { provide: 'LOCALSTORAGE', useValue: window.localStorage },
-    AuthService, UserService, PostService, FriendService, PostNotificationService,
+    AuthService, UserService, PostService, FriendService,
+    PostNotificationService,
+    ChatNotificationService,
     ConfirmationService,
   MessageService],
   bootstrap: [AppComponent]

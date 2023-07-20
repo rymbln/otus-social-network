@@ -180,9 +180,9 @@ public class TarantoolService: ITarantoolService, IDisposable
 
     }
 
-    public async Task DeleteUserChatSocket(string userId)
+    public async Task DeleteUserChatSocket(string connectionId)
     {
-        await box.Call("delete_chatsockets_by_user", TarantoolTuple.Create(userId));
+        await box.Call("delete_chatsockets", TarantoolTuple.Create(connectionId));
     }
 
     public async Task<List<string>> GetConnectedUsers(List<string> userIds)
@@ -276,16 +276,35 @@ public class TarantoolService: ITarantoolService, IDisposable
     {
         var res = new List<ChatSocket>();
 
-        var data = await box.Call<TarantoolTuple<string>, TarantoolTuple<string, string, string>>(
+        var data = await box.Call<TarantoolTuple<string>, TarantoolTuple<string, string, string>[]>(
              "get_chatsockets",
              TarantoolTuple.Create(userId)
             );
         foreach (var item in data.Data)
         {
-            var obj = new ChatSocket(item.Item2, item.Item3);
+            foreach(var el in item)
+            {
+            var obj = new ChatSocket(el.Item2, el.Item3);
             res.Add(obj);
+
+            }
         }
         return res;
+    }
+
+    public async Task<ChatItem> GetChat(string chatId)
+    {
+        var data = await box.Call<TarantoolTuple<string>, TarantoolTuple<string, string, string[]>>(
+             "get_chat_for_user",
+             TarantoolTuple.Create(chatId)
+            );
+
+        foreach (var item in data.Data)
+        {
+           var res = new ChatItem(item.Item1, item.Item2, item.Item3);
+            return res;
+        }
+        return null;
     }
 }
 

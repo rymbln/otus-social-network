@@ -120,13 +120,13 @@ local function init()
     })
     log.info(chatsockets.name .. " space was created.")
 
-    usersockets:create_index('chatsockets_idx_primary', {
+    chatsockets:create_index('chatsockets_idx_primary', {
         if_not_exists = true, type = 'HASH', unique = true, parts = { { field = 'id', type = 'string'}}
     })
-    usersockets:create_index('chatsockets_idx_userid', {
+    chatsockets:create_index('chatsockets_idx_userid', {
         if_not_exists = true, unique = false, parts = { { field = 'userid', type = 'string'} }
     })
-    usersockets:create_index('chatsockets_idx_connectionid', {
+    chatsockets:create_index('chatsockets_idx_connectionid', {
         if_not_exists = true, unique = false, parts = { { field = 'connectionid', type = 'string'} }
     })
     log.info("chatsockets index created.")
@@ -179,6 +179,7 @@ local function init()
     })
     chats_and_users:create_index('chats_and_users_chatid_idx', {if_not_exists = true, unique = false, parts = {field_map.chatid}})
     chats_and_users:create_index('chats_and_users_userid_idx', {if_not_exists = true, unique = false, parts = {field_map.userid}})
+
     log.info("chats_and_users:index created")
     ---------
     --- MESSAGES
@@ -263,6 +264,25 @@ function delete_post(postid)
     for _,tuple in pairs(result) do
         tuple:delete()
     end
+end
+
+function get_chat_for_user(chatid)
+    log.info("get_chat_for_user:" .. chatid)
+    local chats_and_users = box.space['chats_and_users']
+    local chats_and_users_idx_user = chats_and_users.index.chats_and_users_userid_idx
+    local chats_and_users_idx_chat = chats_and_users.index.chats_and_users_chatid_idx
+    local chats = box.space.chats
+    local result_chat_users = chats_and_users_idx_chat:select(chatid)
+    local item_chat = chats:get(chatid)
+    local userids = {}
+    if result_chat_users ~= nil then
+        for idx, val in ipairs(result_chat_users) do
+            table.insert(userids, val.userid)
+        end
+    end
+    tuple_item = box.tuple.new{item_chat.id, item_chat.name, userids}
+    log.info(tuple_item)
+    return tuple_item
 end
 
 function get_chats_for_user(userid)
