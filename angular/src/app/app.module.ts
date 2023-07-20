@@ -38,6 +38,10 @@ import { FriendsComponent } from './friends/friends.component';
 import { FeedComponent } from './feed/feed.component';
 import { NgChartsModule } from 'ng2-charts';
 import { PostHotificationService as PostNotificationService } from './post-hotification.service';
+import { ChatsComponent } from './chats/chats.component';
+import { DataViewModule, DataViewLayoutOptions } from 'primeng/dataview';
+import { DropdownModule } from 'primeng/dropdown';
+import { ScrollPanelModule } from 'primeng/scrollpanel';
 
 @NgModule({
   declarations: [
@@ -49,6 +53,7 @@ import { PostHotificationService as PostNotificationService } from './post-hotif
     ProfileComponent,
     FriendsComponent,
     FeedComponent,
+    ChatsComponent,
     ],
   imports: [
     BrowserModule,
@@ -69,7 +74,10 @@ import { PostHotificationService as PostNotificationService } from './post-hotif
     NgChartsModule,
     ToastModule,
     MessagesModule,
-    MessageModule
+    MessageModule,
+    DataViewModule,
+    DropdownModule,
+    ScrollPanelModule
   ],
   providers: [
     AuthGuard,

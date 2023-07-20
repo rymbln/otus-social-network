@@ -19,12 +19,6 @@ export class AppComponent  implements OnInit {
     map((val: boolean) => {
       const items: MenuItem[] = [];
 
-      items.push({
-        label: 'Chart',
-        icon: 'pi pi-pie',
-        routerLink: ['/chart']
-      });
-
       if (val) {
         items.push({
           label: 'Me: ' + this.auth.currentUser,
@@ -45,6 +39,11 @@ export class AppComponent  implements OnInit {
           label: 'Friends',
           icon: 'pi pi-users',
           routerLink: ['/friends']
+        });
+        items.push({
+          label: 'Chats',
+          icon: 'pi pi-comments',
+          routerLink: ['/chats']
         });
         items.push({
           label: 'Logout',

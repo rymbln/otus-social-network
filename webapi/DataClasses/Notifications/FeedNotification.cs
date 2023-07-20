@@ -3,7 +3,19 @@ using OtusSocialNetwork.DataClasses.Dtos;
 
 namespace OtusSocialNetwork.DataClasses.Notifications
 {
-	public interface INotificationFeedReload
+    public interface INotificationChatSended
+    {
+        public string ChatId { get; set; }
+        public string Message { get; set; }
+        public string UserId { get; set; }
+    }
+    public interface INotificationChatSaved
+    {
+        public string ChatId { get; set; }
+        public string Message { get; set; }
+        public string UserId { get; set; }
+    }
+    public interface INotificationFeedReload
 	{
 		string UserId { get; set; }
 	}
