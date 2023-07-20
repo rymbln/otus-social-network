@@ -1,6 +1,17 @@
 ﻿version: "3.9"
 
 services:
+  otus-haproxy:
+    container_name: "otus-haproxy"
+    image: haproxy:2.7
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+      - '8404:8404'
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    networks:
+      - otus-network
   otus-rabbit:
     container_name: "otus-rabbit"
     image: rabbitmq:management
@@ -52,7 +63,7 @@ services:
     networks:
       - otus-network
 
-  otus-api:
+  otus-api-1:
     image: otus-api-image
     build:
       context: ./webapi
@@ -77,8 +88,7 @@ services:
       JWTSettings:DurationInMinutes: "60"
     user: "555:555"
     ports:
-      - 5000:5000
-      - 5001:5001
+      - 5001:5000
     mem_limit: 1024m
     entrypoint: dotnet OtusSocialNetwork.dll
     depends_on:
@@ -86,7 +96,44 @@ services:
       - otus-tarantool
       - otus-rabbit
     networks:
-      - otus-network
+      otus-network:
+        ipv4_address: 172.20.1.1
+
+  otus-api-2:
+    image: otus-api-image
+    build:
+      context: ./webapi
+      dockerfile: ./Dockerfile
+    container_name: otus-api
+    restart: always
+    environment:
+      # Основные настройки для работы API
+      ASPNETCORE_URLS: "http://+:5000"
+      AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
+      # Строка подключения к базе данных Postgres
+      DatabaseSettings:ConnStr: "Host=otus-db;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      # Подключение к tarantool
+      TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
+      TarantoolSettings:Space: "posts"
+      # Rabbit
+      RabbitEndpoint: "otus-rabbit"
+      # Настройки генерации токена авторизации
+      JWTSettings:Key: "verystrongkeyforauthtoken"
+      JWTSettings:Issuer: otus.social.network
+      JWTSettings:Audience: otus.social.network
+      JWTSettings:DurationInMinutes: "60"
+    user: "555:555"
+    ports:
+      - 5002:5000
+    mem_limit: 1024m
+    entrypoint: dotnet OtusSocialNetwork.dll
+    depends_on:
+      - otus-db
+      - otus-tarantool
+      - otus-rabbit
+    networks:
+      otus-network:
+        ipv4_address: 172.20.1.2
 
   otus-web:
     image: otus-web-image
@@ -98,8 +145,6 @@ services:
     mem_limit: 256m
     ports:
       - 4200:80
-    depends_on:
-      - otus-api
     networks:
       - otus-network
 
