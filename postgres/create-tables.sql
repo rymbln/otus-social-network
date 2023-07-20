@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS public."user" (
 
 INSERT INTO public."user" (id,first_name,second_name,sex,age,city,biography) VALUES
 	 ('b2428a06-ee2a-40b8-94f4-69cd3c85a2e0','rymbln','rymbln','male',18,'smolensk','sdkjgklsjg'),
-	 ('3eefe556-a733-4ba9-ba28-3e55cc459a79','test','test','female',16,'moscow','dsgsg'),
-	 ('3cc744e5-ec95-4926-9a64-aba219819337','qwerty','qwerty','qwerty',89,'qwerty','qwerty');
+	 ('3eefe556-a733-4ba9-ba28-3e55cc459a79','test','2test','female',16,'moscow','dsgsg'),
+	 ('3cc744e5-ec95-4926-9a64-aba219819337','qwerty','2qwerty','qwerty',89,'qwerty','qwerty');
 
 
 -- public.posts definition

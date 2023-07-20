@@ -78,6 +78,7 @@ services:
     user: "555:555"
     ports:
       - 5000:5000
+      - 5001:5001
     mem_limit: 1024m
     entrypoint: dotnet OtusSocialNetwork.dll
     depends_on:

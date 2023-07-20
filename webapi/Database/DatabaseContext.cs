@@ -355,7 +355,6 @@ public class DatabaseContext : IDatabaseContext, IDisposable
         var sql = "SELECT id, concat(first_name , ' ' , second_name) as fullname " +
             "FROM public.\"user\"" +
             "where (concat(first_name , ' ' , second_name) ilike '%" + query + "%' ) " +
-            " or ( first_name ilike '%" + query + " or second_name ilike '%" + query + ") " + 
             "order by concat(first_name , ' ' , second_name);";
         var items = await con.QueryAsync<FriendView>(sql, new { query = query });
         return (true, "OK", items.ToList());
