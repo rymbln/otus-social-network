@@ -27,7 +27,7 @@ export class PostHotificationService {
 
   startConnection() {
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`${environment.websocket}/post/feed/posted`, {
+      .withUrl(`${environment.websocket}/feed/news`, {
         accessTokenFactory: () => this.auth.jwt,
         skipNegotiation: true,
         transport: HttpTransportType.WebSockets,
@@ -44,7 +44,7 @@ export class PostHotificationService {
       .catch(err => console.log('Error while starting connection: ' + err));
 
     this.hubConnection.onreconnected(() => {
-      this.http.get(`${environment.websocket}/post/feed/posted?access_token=${this.auth.jwt}`)
+      this.http.get(`${environment.websocket}/feed/news?access_token=${this.auth.jwt}`)
         .subscribe(res => {
           console.log(res);
         })

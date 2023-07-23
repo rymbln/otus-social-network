@@ -1,0 +1,53 @@
+{
+  "rabbit_version": "3.12.2",
+  "rabbitmq_version": "3.12.2",
+  "product_name": "RabbitMQ",
+  "product_version": "3.12.2",
+  "users": [
+    {
+      "name": "guest",
+      "password_hash": "U7HRL+826+hTOrVAj4PPDLVCE+j4bdIqZ/30LBEx+QfDvcT/",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": [
+        "administrator"
+      ],
+      "limits": {}
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "guest",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "policies": [
+    {
+      "vhost": "/",
+      "name": "ha-fed",
+      "pattern": ".*",
+      "apply-to": "queues",
+      "definition": {
+        "federation-upstream-set": "all",
+        "ha-mode": "nodes",
+        "ha-params": [
+          "rabbit@rmq0.local",
+          "rabbit@rmq1.local",
+          "rabbit@rmq2.local"
+        ],
+        "ha-sync-mode": "automatic"
+      },
+      "priority": 1
+    }
+  ],
+  "queues": [],
+  "exchanges": [],
+  "bindings": []
+}

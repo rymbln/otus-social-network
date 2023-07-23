@@ -4,11 +4,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+using OtusSocialNetwork.Consumers;
 using OtusSocialNetwork.Database;
 using OtusSocialNetwork.DataClasses.Dtos;
 using OtusSocialNetwork.DataClasses.Internals;
+using OtusSocialNetwork.DataClasses.Notifications;
 using OtusSocialNetwork.Filters;
 using OtusSocialNetwork.Middlewares;
+using OtusSocialNetwork.Rabbitmq;
 using OtusSocialNetwork.Services;
 using OtusSocialNetwork.SignalHub;
 using OtusSocialNetwork.Tarantool;
@@ -159,28 +162,38 @@ builder.Services.AddSwaggerGen(c =>
                 });
 });
 
+var rabbitMqSettings = builder.Configuration.GetSection(nameof(RabbitMqSettings)).Get<RabbitMqSettings>();
 builder.Services.AddMassTransit(busConfigurator =>
-{ 
+{
     busConfigurator.SetKebabCaseEndpointNameFormatter();
     busConfigurator.AddConsumers(Assembly.GetExecutingAssembly());
+    busConfigurator.AddConsumer<NotificationFeedUpdateConsumer>();
+
+    //busConfigurator.AddConsumer<INotificationFeedAdd, NotificationFeedAddConsumer>();
     busConfigurator.UsingRabbitMq((context, busFactoryConfigurator) =>
     {
-        //busFactoryConfigurator.Host("rabbitmq", "/", h => { });
-        busFactoryConfigurator.Host(config.GetValue<string>("RabbitEndpoint"), hostConfigurator => { });
+        busFactoryConfigurator.Host(rabbitMqSettings.Uri);
         busFactoryConfigurator.ConfigureEndpoints(context);
+        //busFactoryConfigurator.ReceiveEndpoint($"{nameof(INotificationFeedAdd)}-queue", e =>
+        //{
+        //    e.ConfigureConsumer<NotificationFeedUpdateConsumer>(context);
+        //    e.Bind<INotificationFeedAdd>();
+        //});
+
+        //busFactoryConfigurator.Host(rabbitMqSettings.Uri, hostConfigurator => {
+        //    hostConfigurator.Username(rabbitMqSettings.UserName);
+        //    hostConfigurator.Password(rabbitMqSettings.Password);
+        //});
+        // busFactoryConfigurator.ConfigureEndpoints(context);
     });
 });
-
 
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 //app.UseHttpsRedirection();
 
@@ -189,6 +202,9 @@ app.UseCors("CorsPolicy");
 app.UseAuthorization();
 
 app.UseMiddleware<ErrorHandlerMiddleware>();
+app.UseDefaultPage();
+
+
 
 //app.UseRouting();
 app.MapControllers();

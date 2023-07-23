@@ -54,7 +54,7 @@ public class ChatController : ControllerBase
     }
 
     [HttpGet]
-    [Route("/feed")]
+    [Route("/ws/feed/chat")]
     public IActionResult Get()
     {
        // _hub.Clients.All.SendAsync("Posted", DataManager.GetData());

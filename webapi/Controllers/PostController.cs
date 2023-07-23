@@ -28,9 +28,11 @@ public class PostController : ControllerBase
 	private readonly ITarantoolService _tarantool;
     private readonly IPublishEndpoint _rabbit;
     private readonly IHubContext<PostHub> _hub;
+	private readonly Microsoft.Extensions.Hosting.IHostingEnvironment _host;
 
 
-    public PostController(IAuthenticatedUserService auth, IDatabaseContext db, IMapper mapper,
+	public PostController(IAuthenticatedUserService auth, IDatabaseContext db, IMapper mapper,
+        Microsoft.Extensions.Hosting.IHostingEnvironment host,
 		ITarantoolService tarantool,
 		IPublishEndpoint rabbit,
 		IHubContext<PostHub> hub)
@@ -41,11 +43,12 @@ public class PostController : ControllerBase
 		_tarantool = tarantool;
 		_rabbit = rabbit;
 		_hub = hub;
+		_host = host;
 
 	}
 	
 	[HttpGet]
-	[Route("/feed/posted")]
+	[Route("/ws/feed/news")]
 	public IActionResult Get()
 	{
 		_hub.Clients.All.SendAsync("Posted", DataManager.GetData());
@@ -114,7 +117,7 @@ public class PostController : ControllerBase
         if (!friends.isSuccess) return BadRequest(new ErrorRes(friends.msg));
 
 		// Get count of friens. If more than 1000, update feed
-		if (friends.data.Count >= 1000)
+		if (friends.data.Count >= 2 || _host.IsDevelopment())
 		{
 			// Write to tarantool
 			await _rabbit.Publish<INotificationFeedAdd>(
@@ -141,7 +144,7 @@ public class PostController : ControllerBase
         var friends = await _db.GetFriends(_auth.UserId);
         if (!friends.isSuccess) return BadRequest(new ErrorRes(friends.msg));
 		// Get count of friens. If more than 1000, update feed
-		if (friends.data.Count >= 1000)
+		if (friends.data.Count >= 2 || _host.IsDevelopment())
 		{
 
 			// Write to tarantool
@@ -165,7 +168,7 @@ public class PostController : ControllerBase
         var friends = await _db.GetFriends(_auth.UserId);
         if (!friends.isSuccess) return BadRequest(new ErrorRes(friends.msg));
 		// Get count of friens. If more than 1000, update feed
-		if (friends.data.Count >= 1000)
+		if (friends.data.Count >= 2 || _host.IsDevelopment())
 		{
 			// Write to tarantool
 			await _rabbit.Publish<INotificationFeedDelete>(

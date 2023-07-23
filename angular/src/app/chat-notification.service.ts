@@ -35,7 +35,7 @@ export class ChatNotificationService {
 
   startConnection() {
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`${environment.websocket}/chat/feed`, {
+      .withUrl(`${environment.websocket}/feed/chat`, {
         accessTokenFactory: () => this.auth.jwt,
         skipNegotiation: true,
         transport: HttpTransportType.WebSockets,
@@ -52,7 +52,7 @@ export class ChatNotificationService {
       .catch(err => console.log('Error while starting connection: ' + err));
 
     this.hubConnection.onreconnected(() => {
-      this.http.get(`${environment.websocket}/chat/feed?access_token=${this.auth.jwt}`)
+      this.http.get(`${environment.websocket}/feed/chat?access_token=${this.auth.jwt}`)
         .subscribe(res => {
           console.log(res);
         })
