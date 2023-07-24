@@ -1,4 +1,6 @@
 using MassTransit;
+using MassTransit.RabbitMqTransport.Configuration;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -105,7 +107,7 @@ builder.Services.AddAuthentication(options =>
                 // If the request is for our hub...
                 var path = context.HttpContext.Request.Path;
                 if (!string.IsNullOrEmpty(accessToken) &&
-                    (path.StartsWithSegments("/post/feed/posted") || path.StartsWithSegments("/chat/feed")))
+                    (path.StartsWithSegments("/ws/feed/news") || path.StartsWithSegments("/ws/feed/chat")))
                 {
                     // Read the token out of the query string
                     context.Token = accessToken;
@@ -163,28 +165,46 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var rabbitMqSettings = builder.Configuration.GetSection(nameof(RabbitMqSettings)).Get<RabbitMqSettings>();
-builder.Services.AddMassTransit(busConfigurator =>
+builder.Services.AddMassTransit(mt =>
 {
-    busConfigurator.SetKebabCaseEndpointNameFormatter();
-    busConfigurator.AddConsumers(Assembly.GetExecutingAssembly());
-    busConfigurator.AddConsumer<NotificationFeedUpdateConsumer>();
+    //mt.SetKebabCaseEndpointNameFormatter();
+    mt.AddConsumers(Assembly.GetExecutingAssembly());
 
-    //busConfigurator.AddConsumer<INotificationFeedAdd, NotificationFeedAddConsumer>();
-    busConfigurator.UsingRabbitMq((context, busFactoryConfigurator) =>
+    mt.UsingRabbitMq((context, busFactoryConfigurator) =>
     {
         busFactoryConfigurator.Host(rabbitMqSettings.Uri);
-        busFactoryConfigurator.ConfigureEndpoints(context);
-        //busFactoryConfigurator.ReceiveEndpoint($"{nameof(INotificationFeedAdd)}-queue", e =>
-        //{
-        //    e.ConfigureConsumer<NotificationFeedUpdateConsumer>(context);
-        //    e.Bind<INotificationFeedAdd>();
-        //});
+        //busFactoryConfigurator.ConfigureEndpoints(context);
 
-        //busFactoryConfigurator.Host(rabbitMqSettings.Uri, hostConfigurator => {
-        //    hostConfigurator.Username(rabbitMqSettings.UserName);
-        //    hostConfigurator.Password(rabbitMqSettings.Password);
-        //});
-        // busFactoryConfigurator.ConfigureEndpoints(context);
+        busFactoryConfigurator.ReceiveEndpoint(nameof(NotificationFeedAddConsumer), e =>
+        {
+            e.ConfigureConsumeTopology = false;
+            e.ConfigureConsumer(context, typeof(NotificationFeedAddConsumer));
+            e.Bind<INotificationFeedAdd>();
+        });
+        busFactoryConfigurator.ReceiveEndpoint(nameof(NotificationFeedUpdateConsumer), e =>
+        {
+            e.ConfigureConsumeTopology = false;
+            e.ConfigureConsumer(context, typeof(NotificationFeedUpdateConsumer));
+            e.Bind<INotificationFeedUpdate>();
+        });
+        busFactoryConfigurator.ReceiveEndpoint(nameof(NotificationFeedReloadConsumer), e =>
+        {
+            e.ConfigureConsumeTopology = false;
+            e.ConfigureConsumer(context, typeof(NotificationFeedReloadConsumer));
+            e.Bind<INotificationFeedReload>();
+        });
+        busFactoryConfigurator.ReceiveEndpoint(nameof(NotificationFeedDeleteConsumer), e =>
+        {
+            e.ConfigureConsumeTopology = false;
+            e.ConfigureConsumer(context, typeof(NotificationFeedDeleteConsumer));
+            e.Bind<INotificationFeedDelete>();
+        });
+        busFactoryConfigurator.ReceiveEndpoint($"{nameof(PushFeedUpdateConsumer)}_{rabbitMqSettings.Consumer}", e =>
+        {
+            e.ConfigureConsumeTopology = false;
+            e.ConfigureConsumer(context, typeof(PushFeedUpdateConsumer));
+            e.Bind<IPushFeedUpdate>();
+        });
     });
 });
 
@@ -195,7 +215,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
 app.UseCors("CorsPolicy");
 
@@ -208,8 +228,8 @@ app.UseDefaultPage();
 
 //app.UseRouting();
 app.MapControllers();
-app.MapHub<PostHub>("/post/feed/posted");
-app.MapHub<ChatHub>("/chat/feed");
+app.MapHub<PostHub>("/ws/feed/news");
+app.MapHub<ChatHub>("/ws/feed/chat");
 //app.MapHub<ChartHub>("/chart");
 
 app.Run();

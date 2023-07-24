@@ -126,126 +126,129 @@ services:
     networks:
       - otus-network
 
-  # otus-api-1:
-  #   image: otus-api-image
-  #   build:
-  #     context: ./webapi
-  #     dockerfile: ./Dockerfile
-  #   container_name: otus-api-1
-  #   restart: always
-  #   environment:
-  #     # Основные настройки для работы API
-  #     ServiceName: "Otus1"
-  #     ASPNETCORE_URLS: "http://+:5001"
-  #     AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
-  #     # Строка подключения к базе данных Postgres
-  #     DatabaseSettings:ConnStr: "Host=otus-db;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
-  #     # Подключение к tarantool
-  #     TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
-  #     TarantoolSettings:Space: "posts"
-  #     # Rabbit
-  #     RabbitMqSettings:Uri: "rabbitmq://guest:guest@otus-haproxy:5672"
-  #     # Настройки генерации токена авторизации
-  #     JWTSettings:Key: "verystrongkeyforauthtoken"
-  #     JWTSettings:Issuer: otus.social.network
-  #     JWTSettings:Audience: otus.social.network
-  #     JWTSettings:DurationInMinutes: "60"
-  #   user: "555:555"
-  #   ports:
-  #     - 5001:5001
-  #   mem_limit: 1024m
-  #   entrypoint: dotnet OtusSocialNetwork.dll
-  #   depends_on:
-  #     - otus-db
-  #     - otus-tarantool
-  #     - otus-haproxy
-  #   networks:
-  #     - otus-network
+  otus-api-1:
+    image: otus-api-image
+    build:
+      context: ./webapi
+      dockerfile: ./Dockerfile
+    container_name: otus-api-1
+    restart: always
+    environment:
+      # Основные настройки для работы API
+      ServiceName: "Otus1"
+      ASPNETCORE_URLS: "http://+:5001"
+      AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
+      # Строка подключения к базе данных Postgres
+      DatabaseSettings:ConnStr: "Host=otus-db;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      # Подключение к tarantool
+      TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
+      TarantoolSettings:Space: "posts"
+      # Rabbit
+      RabbitMqSettings:Uri: "rabbitmq://guest:guest@otus-haproxy:5672"
+      RabbitMqSettings:Consumer: api1
+      # Настройки генерации токена авторизации
+      JWTSettings:Key: "verystrongkeyforauthtoken"
+      JWTSettings:Issuer: otus.social.network
+      JWTSettings:Audience: otus.social.network
+      JWTSettings:DurationInMinutes: "60"
+    user: "555:555"
+    ports:
+      - 5001:5001
+    mem_limit: 1024m
+    entrypoint: dotnet OtusSocialNetwork.dll
+    depends_on:
+      - otus-db
+      - otus-tarantool
+      - otus-haproxy
+    networks:
+      - otus-network
 
-  # otus-api-2:
-  #   image: otus-api-image
-  #   build:
-  #     context: ./webapi
-  #     dockerfile: ./Dockerfile
-  #   container_name: otus-api-2
-  #   restart: always
-  #   environment:
-  #     # Основные настройки для работы API
-  #     ServiceName: "Otus2"
-  #     ASPNETCORE_URLS: "http://+:5002"
-  #     AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
-  #     # Строка подключения к базе данных Postgres
-  #     DatabaseSettings:ConnStr: "Host=otus-db;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
-  #     # Подключение к tarantool
-  #     TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
-  #     TarantoolSettings:Space: "posts"
-  #     # Rabbit
-  #     RabbitMqSettings:Uri: "rabbitmq://guest:guest@otus-haproxy:5672"
-  #     # Настройки генерации токена авторизации
-  #     JWTSettings:Key: "verystrongkeyforauthtoken"
-  #     JWTSettings:Issuer: otus.social.network
-  #     JWTSettings:Audience: otus.social.network
-  #     JWTSettings:DurationInMinutes: "60"
-  #   user: "555:555"
-  #   ports:
-  #     - 5002:5002
-  #   mem_limit: 1024m
-  #   entrypoint: dotnet OtusSocialNetwork.dll
-  #   depends_on:
-  #     - otus-db
-  #     - otus-tarantool
-  #     - otus-haproxy
-  #   networks:
-  #     - otus-network
+  otus-api-2:
+    image: otus-api-image
+    build:
+      context: ./webapi
+      dockerfile: ./Dockerfile
+    container_name: otus-api-2
+    restart: always
+    environment:
+      # Основные настройки для работы API
+      ServiceName: "Otus2"
+      ASPNETCORE_URLS: "http://+:5002"
+      AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
+      # Строка подключения к базе данных Postgres
+      DatabaseSettings:ConnStr: "Host=otus-db;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      # Подключение к tarantool
+      TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
+      TarantoolSettings:Space: "posts"
+      # Rabbit
+      RabbitMqSettings:Uri: "rabbitmq://guest:guest@otus-haproxy:5672"
+      RabbitMqSettings:Consumer: api2
+      # Настройки генерации токена авторизации
+      JWTSettings:Key: "verystrongkeyforauthtoken"
+      JWTSettings:Issuer: otus.social.network
+      JWTSettings:Audience: otus.social.network
+      JWTSettings:DurationInMinutes: "60"
+    user: "555:555"
+    ports:
+      - 5002:5002
+    mem_limit: 1024m
+    entrypoint: dotnet OtusSocialNetwork.dll
+    depends_on:
+      - otus-db
+      - otus-tarantool
+      - otus-haproxy
+    networks:
+      - otus-network
 
-  # otus-api-3:
-  #   image: otus-api-image
-  #   build:
-  #     context: ./webapi
-  #     dockerfile: ./Dockerfile
-  #   container_name: otus-api-3
-  #   restart: always
-  #   environment:
-  #     # Основные настройки для работы API
-  #     ServiceName: "Otus3"
-  #     ASPNETCORE_URLS: "http://+:5003"
-  #     AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
-  #     # Строка подключения к базе данных Postgres
-  #     DatabaseSettings:ConnStr: "Host=otus-db;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
-  #     # Подключение к tarantool
-  #     TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
-  #     TarantoolSettings:Space: "posts"
-  #     # Rabbit
-  #     RabbitMqSettings:Uri: "rabbitmq://guest:guest@otus-haproxy:5672"
-  #     # Настройки генерации токена авторизации
-  #     JWTSettings:Key: "verystrongkeyforauthtoken"
-  #     JWTSettings:Issuer: otus.social.network
-  #     JWTSettings:Audience: otus.social.network
-  #     JWTSettings:DurationInMinutes: "60"
-  #   user: "555:555"
-  #   ports:
-  #     - 5003:5003
-  #   mem_limit: 1024m
-  #   entrypoint: dotnet OtusSocialNetwork.dll
-  #   depends_on:
-  #     - otus-db
-  #     - otus-tarantool
-  #     - otus-haproxy
-  #   networks:
-  #     - otus-network
+  otus-api-3:
+    image: otus-api-image
+    build:
+      context: ./webapi
+      dockerfile: ./Dockerfile
+    container_name: otus-api-3
+    restart: always
+    environment:
+      # Основные настройки для работы API
+      ServiceName: "Otus3"
+      ASPNETCORE_URLS: "http://+:5003"
+      AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
+      # Строка подключения к базе данных Postgres
+      DatabaseSettings:ConnStr: "Host=otus-db;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      # Подключение к tarantool
+      TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
+      TarantoolSettings:Space: "posts"
+      # Rabbit
+      RabbitMqSettings:Uri: "rabbitmq://guest:guest@otus-haproxy:5672"
+      RabbitMqSettings:Consumer: api3
+      # Настройки генерации токена авторизации
+      JWTSettings:Key: "verystrongkeyforauthtoken"
+      JWTSettings:Issuer: otus.social.network
+      JWTSettings:Audience: otus.social.network
+      JWTSettings:DurationInMinutes: "60"
+    user: "555:555"
+    ports:
+      - 5003:5003
+    mem_limit: 1024m
+    entrypoint: dotnet OtusSocialNetwork.dll
+    depends_on:
+      - otus-db
+      - otus-tarantool
+      - otus-haproxy
+    networks:
+      - otus-network
 
-  # otus-web:
-  #   image: otus-web-image
-  #   container_name: otus-web
-  #   build:
-  #     context: ./angular
-  #     dockerfile: ./Dockerfile
-  #   restart: always
-  #   mem_limit: 256m
-  #   ports:
-  #     - 4200:80
-  #   networks:
-  #     - otus-network
+  otus-web:
+    image: otus-web-image
+    container_name: otus-web
+    build:
+      context: ./angular
+      dockerfile: ./Dockerfile
+    restart: always
+    mem_limit: 256m
+    ports:
+      - 4200:80
+    networks:
+      - otus-network
 
 networks:
   otus-network:

@@ -35,6 +35,33 @@ namespace OtusSocialNetwork.DataClasses.Notifications
         string PostId { get; set; }
     }
 
+    public interface IPushFeedUpdate
+    {
+        List<string> UserIds { get; set; }
+        List<string> ConnectionIds { get; set; }
+        string PostId { get; set; }
+        PostDto Post { get; set; }
+    }
+    public class PushFeedUpdate : IPushFeedUpdate
+    {
+        public PushFeedUpdate()
+        {
+        }
+
+        public PushFeedUpdate(List<string> userIds, List<string> connectionIds, string postId, PostDto post)
+        {
+            UserIds = userIds ?? throw new ArgumentNullException(nameof(userIds));
+            ConnectionIds = connectionIds ?? throw new ArgumentNullException(nameof(connectionIds));
+            PostId = postId ?? throw new ArgumentNullException(nameof(postId));
+            Post = post ?? throw new ArgumentNullException(nameof(post));
+        }
+
+        public List<string> UserIds { get; set; }
+        public List<string> ConnectionIds { get; set; }
+        public string PostId { get; set; }
+        public PostDto Post { get; set; }
+    }
+
     public class NotificationFeedReload : INotificationFeedReload
     {
         public NotificationFeedReload(string userId)

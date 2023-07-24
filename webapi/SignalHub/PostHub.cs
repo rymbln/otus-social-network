@@ -1,4 +1,6 @@
 ﻿using System;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using OtusSocialNetwork.Database;
@@ -7,7 +9,7 @@ using OtusSocialNetwork.Tarantool;
 
 namespace OtusSocialNetwork.SignalHub;
 
-[Authorize]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class PostHub: Hub
 {
     private readonly IAuthenticatedUserService authenticatedUserService;
@@ -53,6 +55,17 @@ public class PostHub: Hub
 
 public class PostHubModel
 {
+    public PostHubModel()
+    {
+    }
+
+    public PostHubModel(string postId, string postText, string authorUserId)
+    {
+        PostId = postId ?? throw new ArgumentNullException(nameof(postId));
+        PostText = postText ?? throw new ArgumentNullException(nameof(postText));
+        AuthorUserId = authorUserId ?? throw new ArgumentNullException(nameof(authorUserId));
+    }
+
     public string PostId { get; set; }
     public string PostText { get; set; }
     public string AuthorUserId { get; set; }

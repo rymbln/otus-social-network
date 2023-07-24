@@ -10,18 +10,6 @@
     "version": "v1"
   },
   "paths": {
-    "/feed": {
-      "get": {
-        "tags": [
-          "Chat"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
     "/api/Chat": {
       "get": {
         "tags": [
@@ -286,18 +274,6 @@
             }
           }
         },
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/feed/posted": {
-      "get": {
-        "tags": [
-          "Post"
-        ],
         "responses": {
           "200": {
             "description": "Success"

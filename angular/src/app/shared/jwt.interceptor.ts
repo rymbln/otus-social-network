@@ -14,8 +14,8 @@ export class JwtInterceptor implements HttpInterceptor {
     // add auth header with jwt if user is logged in and request is to the api url
     const hasAuthData = this.auth.isAuth;
     const jwt = this.auth.jwt;
-    const isApiUrl = request.url.startsWith(environment.api);
-    if (hasAuthData && isApiUrl) {
+    //const isApiUrl = request.url.startsWith(environment.api);
+    if (hasAuthData) {
       // console.log('jwt intercept add: ' + jwt);
       request = this.addTokenHeader(request, jwt);
     }

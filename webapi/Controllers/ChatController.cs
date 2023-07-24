@@ -54,15 +54,6 @@ public class ChatController : ControllerBase
     }
 
     [HttpGet]
-    [Route("/ws/feed/chat")]
-    public IActionResult Get()
-    {
-       // _hub.Clients.All.SendAsync("Posted", DataManager.GetData());
-        return Ok(new { Message = "Request Completed" });
-    }
-
-
-    [HttpGet]
     public async Task<IActionResult> GetChats()
     {
         var res = new List<ChatView>();

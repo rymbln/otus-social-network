@@ -88,10 +88,10 @@ export class PostsComponent implements OnInit {
           console.log(data);
           this._refresh.next(true);
           this.isNewPostDialog = false;
-          // Send notification about new post
-          const postHub = { postId: data.id, postText: data.text, authorUserId: data.authorUserId} as PostHubModel;
-          console.log('posthub:', postHub);
-          this.signal.sendPostNotification(postHub);
+          //// Send notification about new post
+          // const postHub = { postId: data.id, postText: data.text, authorUserId: data.authorUserId} as PostHubModel;
+          // console.log('posthub:', postHub);
+          // this.signal.sendPostNotification(postHub);
         })
       ).subscribe();
     } else {

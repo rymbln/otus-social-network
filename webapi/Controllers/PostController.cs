@@ -46,14 +46,6 @@ public class PostController : ControllerBase
 		_host = host;
 
 	}
-	
-	[HttpGet]
-	[Route("/ws/feed/news")]
-	public IActionResult Get()
-	{
-		_hub.Clients.All.SendAsync("Posted", DataManager.GetData());
-		return Ok(new { Message = "Request Completed" });
-	}
 
 	[Authorize]
 	[HttpGet]

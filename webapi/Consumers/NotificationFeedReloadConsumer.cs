@@ -7,6 +7,8 @@ using OtusSocialNetwork.DataClasses.Dtos;
 using OtusSocialNetwork.DataClasses.Notifications;
 using OtusSocialNetwork.Tarantool;
 
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 namespace OtusSocialNetwork.Consumers;
 
 public class NotificationFeedReloadConsumer : IConsumer<INotificationFeedReload>

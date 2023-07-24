@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 using OtusSocialNetwork.Database;
@@ -7,6 +8,7 @@ using OtusSocialNetwork.Tarantool;
 
 namespace OtusSocialNetwork.SignalHub;
 
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class ChatHub: Hub
 {
     private readonly IAuthenticatedUserService _auth;
