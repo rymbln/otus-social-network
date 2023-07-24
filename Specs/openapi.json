@@ -1,4 +1,4 @@
-﻿{
+{
   "openapi": "3.0.0",
   "info": {
     "title": "OTUS Highload Architect",
@@ -306,7 +306,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [ "text" ],
+                "required": ["text"],
                 "properties": {
                   "text": {
                     "$ref": "#/components/schemas/PostText"
@@ -354,7 +354,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [ "id", "text" ],
+                "required": ["id","text"],
                 "properties": {
                   "id": {
                     "$ref": "#/components/schemas/PostId"
@@ -544,7 +544,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [ "text" ],
+                "required": ["text"],
                 "properties": {
                   "text": {
                     "$ref": "#/components/schemas/DialogMessageText"
@@ -729,7 +729,7 @@
       },
       "DialogMessage": {
         "type": "object",
-        "required": [ "from", "to", "text" ],
+        "required": ["from", "to", "text"],
         "properties": {
           "from": {
             "$ref": "#/components/schemas/UserId"
