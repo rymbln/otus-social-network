@@ -1,4 +1,5 @@
 ﻿using OtusSocialNetwork.Database.Entities;
+using OtusSocialNetwork.DataClasses.Dtos;
 
 namespace OtusSocialNetwork.Database;
 
@@ -34,5 +35,9 @@ public interface IDatabaseContext
     Task<(bool isSuccess, string msg)> CreateMessage(string chatId, string userId, string message);
 
     Task<(bool isSuccess, string msg)> DeleteMessage(string chatId, string userId, string messageId);
+
+
+    Task<(bool isSuccess, string msg)> SendDialogMessage(string fromId, string toId, string message);
+    Task<(bool isSuccess, string msg, List<DialogMessageDTO> messages)> GetDialogMessages(string fromId, string toId);
 
 }

@@ -32,23 +32,17 @@ INSERT INTO public."user" (id,first_name,second_name,sex,age,city,biography) VAL
 	 ('3eefe556-a733-4ba9-ba28-3e55cc459a79','test','2test','female',16,'moscow','dsgsg'),
 	 ('3cc744e5-ec95-4926-9a64-aba219819337','qwerty','2qwerty','qwerty',89,'qwerty','qwerty');
 
-
 -- public.posts definition
 
 CREATE TABLE public.posts (
-	id varchar NOT NULL,
+	id varchar null ,
 	author_user_id varchar NOT NULL,
 	post_text text NOT NULL,
-	"timestamp" timestamp NOT NULL,
-	CONSTRAINT post_pk PRIMARY KEY (id)
+	"timestamp" timestamp NOT NULL
 );
-CREATE INDEX posts_author_user_id_idx ON public.posts USING btree (author_user_id, "timestamp");
-
-
--- public.posts foreign keys
-
-ALTER TABLE public.posts ADD CONSTRAINT posts_fk FOREIGN KEY (author_user_id) REFERENCES public."user"(id);
-
+SELECT create_distributed_table('posts', 'author_user_id');
+ALTER TABLE public.posts   ADD PRIMARY KEY (author_user_id, id);
+--ALTER TABLE public.posts ADD CONSTRAINT posts_fk FOREIGN KEY (author_user_id) REFERENCES public."user"(id);
 
 INSERT INTO public.posts (id,author_user_id,post_text,"timestamp") VALUES
 	 ('1d0e8d8b-a070-4698-a0f3-efb7784d5891','3cc744e5-ec95-4926-9a64-aba219819337','another part text','2023-06-17 21:49:58.325025'),
@@ -109,27 +103,12 @@ timestamp '2023-06-10 20:00:00' +
 from generate_series(1,1000)
 ;
 
-
-
-
-
-
-
--- Drop table
-
--- DROP TABLE public.friends;
-
 CREATE TABLE public.friends (
 	user_id varchar NOT NULL,
 	friend_id varchar NOT NULL,
 	CONSTRAINT friends_pk PRIMARY KEY (user_id, friend_id)
 );
-
-
--- public.friends foreign keys
-
-ALTER TABLE public.friends ADD CONSTRAINT friends_fk FOREIGN KEY (user_id) REFERENCES public."user"(id);
-ALTER TABLE public.friends ADD CONSTRAINT friends_fk_1 FOREIGN KEY (friend_id) REFERENCES public."user"(id);
+SELECT create_distributed_table('friends', 'user_id');
 
 INSERT INTO public.friends (user_id,friend_id) VALUES
 	 ('b2428a06-ee2a-40b8-94f4-69cd3c85a2e0','3eefe556-a733-4ba9-ba28-3e55cc459a79'),
@@ -140,46 +119,46 @@ INSERT INTO public.friends (user_id,friend_id) VALUES
 
 
 --- Chat
-
+--
 -- public.chats definition
-
+--
 -- Drop table
-
+--
 -- DROP TABLE public.chats;
-
-CREATE TABLE public.chats (
-	id varchar NOT NULL,
-	"name" varchar NOT NULL,
-	CONSTRAINT chats_pk PRIMARY KEY (id)
-);
-
-INSERT INTO public.chats
-(id, "name")
-VALUES('b65ec3ae-cc92-4ad2-a6a6-1340503a648e', 'Chat Name');
-
+--
+--CREATE TABLE public.chats (
+--	id varchar NOT NULL,
+--	"name" varchar NOT NULL,
+--	CONSTRAINT chats_pk PRIMARY KEY (id)
+--);
+--
+--INSERT INTO public.chats
+--(id, "name")
+--VALUES('b65ec3ae-cc92-4ad2-a6a6-1340503a648e', 'Chat Name');
+--
 -- public.chat_user definition
-
+--
 -- Drop table
-
+--
 -- DROP TABLE public.chat_user;
-
-CREATE TABLE public.chat_user (
-	chat_id varchar NOT NULL,
-	user_id varchar NOT NULL,
-	CONSTRAINT chat_user_pk PRIMARY KEY (chat_id, user_id)
-);
-
-
-INSERT INTO public.chat_user
-(chat_id, user_id)
-VALUES('b65ec3ae-cc92-4ad2-a6a6-1340503a648e', 'b2428a06-ee2a-40b8-94f4-69cd3c85a2e0'),
-('b65ec3ae-cc92-4ad2-a6a6-1340503a648e', '3cc744e5-ec95-4926-9a64-aba219819337');
-
-
+--
+--CREATE TABLE public.chat_user (
+--	chat_id varchar NOT NULL,
+--	user_id varchar NOT NULL,
+--	CONSTRAINT chat_user_pk PRIMARY KEY (chat_id, user_id)
+--);
+--
+--
+--INSERT INTO public.chat_user
+--(chat_id, user_id)
+--VALUES('b65ec3ae-cc92-4ad2-a6a6-1340503a648e', 'b2428a06-ee2a-40b8-94f4-69cd3c85a2e0'),
+--('b65ec3ae-cc92-4ad2-a6a6-1340503a648e', '3cc744e5-ec95-4926-9a64-aba219819337');
+--
+--
 -- public.chat_user foreign keys
-
-ALTER TABLE public.chat_user ADD CONSTRAINT chat_user_fk FOREIGN KEY (chat_id) REFERENCES public.chats(id);
-ALTER TABLE public.chat_user ADD CONSTRAINT chat_user_fk_1 FOREIGN KEY (user_id) REFERENCES public."user"(id);
+--
+--ALTER TABLE public.chat_user ADD CONSTRAINT chat_user_fk FOREIGN KEY (chat_id) REFERENCES public.chats(id);
+--ALTER TABLE public.chat_user ADD CONSTRAINT chat_user_fk_1 FOREIGN KEY (user_id) REFERENCES public."user"(id);
 
 
 
@@ -191,44 +170,38 @@ ALTER TABLE public.chat_user ADD CONSTRAINT chat_user_fk_1 FOREIGN KEY (user_id)
 
 CREATE TABLE public.messages (
 	id varchar NOT NULL,
-	chat_id varchar NOT NULL,
-	user_id varchar NOT NULL,
+	from_user_id varchar NOT NULL,
+	to_user_id varchar NOT NULL,
 	message_text varchar NOT NULL,
-	is_new boolean NOT NULL,
-	"timestamp" timestamp NOT NULL,
-	CONSTRAINT messages_pk PRIMARY KEY (id)
+	"timestamp" timestamp NOT NULL
 );
+SELECT create_distributed_table('messages', 'from_user_id');
+ALTER TABLE public.messages   ADD PRIMARY KEY (from_user_id, id);
+CREATE INDEX messages_to_user_id_idx ON public.messages (to_user_id);
 
 
 -- public.messages foreign keys
-
-ALTER TABLE public.messages ADD CONSTRAINT messages_fk FOREIGN KEY (chat_id) REFERENCES public.chats(id);
-ALTER TABLE public.messages ADD CONSTRAINT messages_fk_1 FOREIGN KEY (user_id) REFERENCES public."user"(id);
-
-
 INSERT INTO public.messages
-(id, chat_id, user_id, message_text, is_new, "timestamp")
+(id, from_user_id, to_user_id, message_text, "timestamp")
 select
 uuid_generate_v4()::varchar as id,
-'b65ec3ae-cc92-4ad2-a6a6-1340503a648e' as chat_id,
-'b2428a06-ee2a-40b8-94f4-69cd3c85a2e0' as user_id,
+'3cc744e5-ec95-4926-9a64-aba219819337' as from_user_id,
+'b2428a06-ee2a-40b8-94f4-69cd3c85a2e0' as to_user_id,
 lipsum(trunc(random()*100)::int) as message_text,
-false as is_new,
 timestamp '2023-06-10 20:00:00' +
        random() * (timestamp '2023-01-20 20:00:00' -
                    timestamp '2023-05-10 10:00:00') as timestamp_val
-from generate_series(1,500)
+from generate_series(1,1000)
 ;
 INSERT INTO public.messages
-(id, chat_id, user_id, message_text, is_new, "timestamp")
+(id, from_user_id, to_user_id, message_text, "timestamp")
 select
 uuid_generate_v4()::varchar as id,
-'b65ec3ae-cc92-4ad2-a6a6-1340503a648e' as chat_id,
-'3cc744e5-ec95-4926-9a64-aba219819337' as user_id,
+'b2428a06-ee2a-40b8-94f4-69cd3c85a2e0' as from_user_id,
+'3cc744e5-ec95-4926-9a64-aba219819337' as to_user_id,
 lipsum(trunc(random()*100)::int) as message_text,
-false as is_new,
 timestamp '2023-06-10 20:00:00' +
        random() * (timestamp '2023-01-20 20:00:00' -
                    timestamp '2023-05-10 10:00:00') as timestamp_val
-from generate_series(1,500)
+from generate_series(1,1000)
 ;

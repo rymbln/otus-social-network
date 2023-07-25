@@ -306,5 +306,38 @@ public class TarantoolService: ITarantoolService, IDisposable
         }
         return null;
     }
+
+    public async Task SendDialogMessage(string fromId, string toId, string message)
+    {
+        await box.Call("create_dialog_message", TarantoolTuple.Create(Guid.NewGuid().ToString(), fromId, toId, message, DateTime.Now.ToUniversalTime().ToString()));
+    }
+
+    public async Task<List<DialogMessageDTO>> GetDialogMessages(string fromId, string toId)
+    {
+            var res = new List<DialogMessageDTO>();
+        try
+        {
+
+            var data = await box.Call<TarantoolTuple<string, string>,
+                TarantoolTuple<string, string, string, string, string>[]>(
+                 "get_messages_for_dialog",
+                 TarantoolTuple.Create(fromId, toId)
+                );
+            foreach (var item in data.Data)
+            {
+                foreach (var el in item)
+                {
+                    var obj = new DialogMessageDTO(el.Item2, el.Item3, el.Item4, DateTime.Parse(el.Item5));
+                    res.Add(obj);
+                }
+
+            }
+            //return res;
+        } catch (Exception ex)
+        {
+            //return res;
+        }
+        return res.OrderBy(o => o.TimeStamp).ToList();
+    }
 }
 

@@ -27,5 +27,10 @@ public interface ITarantoolService
     Task<List<ChatMessageItem>> GetMessages(string chatId);
 
     Task<List<string>> GetConnectedUsers(List<string> userIds);
+
+
+    Task SendDialogMessage(string fromId, string toId, string message);
+    Task<List<DialogMessageDTO>> GetDialogMessages(string fromId, string toId);
+
 }
 

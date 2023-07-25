@@ -1,116 +1,12 @@
 {
 	"info": {
-		"_postman_id": "dfb5a54e-15b4-476a-9225-dd4e7617f771",
-		"name": "Otus.Social.Network",
+		"_postman_id": "463dffa8-2c39-47bb-a0a2-36f18e88c426",
+		"name": "Otus.Social.Network Copy 2",
 		"description": "Contact Support:\n Name: Ivan Trushin\n Email: ivan.v.trushin@yandex.ru",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "2464907"
 	},
 	"item": [
-		{
-			"name": "feed",
-			"item": [
-				{
-					"name": "posted",
-					"item": [
-						{
-							"name": "/feed/posted",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{baseUrl}}/feed/posted",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"feed",
-										"posted"
-									]
-								}
-							},
-							"response": [
-								{
-									"name": "Success",
-									"originalRequest": {
-										"method": "GET",
-										"header": [
-											{
-												"description": "Added as a part of security scheme: apikey",
-												"key": "Authorization",
-												"value": "<API Key>"
-											}
-										],
-										"url": {
-											"raw": "{{baseUrl}}/feed/posted",
-											"host": [
-												"{{baseUrl}}"
-											],
-											"path": [
-												"feed",
-												"posted"
-											]
-										}
-									},
-									"status": "OK",
-									"code": 200,
-									"_postman_previewlanguage": "text",
-									"header": [],
-									"cookie": [],
-									"body": ""
-								}
-							]
-						}
-					]
-				},
-				{
-					"name": "/feed",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/feed",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"feed"
-							]
-						}
-					},
-					"response": [
-						{
-							"name": "Success",
-							"originalRequest": {
-								"method": "GET",
-								"header": [
-									{
-										"description": "Added as a part of security scheme: apikey",
-										"key": "Authorization",
-										"value": "<API Key>"
-									}
-								],
-								"url": {
-									"raw": "{{baseUrl}}/feed",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"feed"
-									]
-								}
-							},
-							"status": "OK",
-							"code": 200,
-							"_postman_previewlanguage": "text",
-							"header": [],
-							"cookie": [],
-							"body": ""
-						}
-					]
-				}
-			]
-		},
 		{
 			"name": "api",
 			"item": [
@@ -548,6 +444,181 @@
 					]
 				},
 				{
+					"name": "Dialog",
+					"item": [
+						{
+							"name": "{userId}",
+							"item": [
+								{
+									"name": "send",
+									"item": [
+										{
+											"name": "/api/Dialog/:userId/send",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"text\": \"New Message\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/api/Dialog/:userId/send",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"Dialog",
+														":userId",
+														"send"
+													],
+													"variable": [
+														{
+															"key": "userId",
+															"value": "b2428a06-ee2a-40b8-94f4-69cd3c85a2e0"
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "Success",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"description": "Added as a part of security scheme: apikey",
+																"key": "Authorization",
+																"value": "<API Key>"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"text\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/api/Dialog/:userId/send",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"Dialog",
+																":userId",
+																"send"
+															],
+															"variable": [
+																{
+																	"key": "userId"
+																}
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "list",
+									"item": [
+										{
+											"name": "/api/Dialog/:userId/list",
+											"request": {
+												"method": "POST",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/api/Dialog/:userId/list",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"Dialog",
+														":userId",
+														"list"
+													],
+													"variable": [
+														{
+															"key": "userId",
+															"value": "b2428a06-ee2a-40b8-94f4-69cd3c85a2e0"
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "Success",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"description": "Added as a part of security scheme: apikey",
+																"key": "Authorization",
+																"value": "<API Key>"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/api/Dialog/:userId/list",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"api",
+																"Dialog",
+																":userId",
+																"list"
+															],
+															"variable": [
+																{
+																	"key": "userId"
+																}
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
 					"name": "Friend",
 					"item": [
 						{
@@ -834,7 +905,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"id\": \"<string>\",\n  \"password\": \"<string>\"\n}",
+									"raw": "{\n  \"id\": \"3cc744e5-ec95-4926-9a64-aba219819337\",\n  \"password\": \"qwerty\"\n}",
 									"options": {
 										"raw": {
 											"headerFamily": "json",
@@ -1690,7 +1761,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIzY2M3NDRlNS1lYzk1LTQ5MjYtOWE2NC1hYmEyMTk4MTkzMzciLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjNjYzc0NGU1LWVjOTUtNDkyNi05YTY0LWFiYTIxOTgxOTMzNyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJxd2VydHkgMnF3ZXJ0eSIsIm5iZiI6MTY4OTg1OTE5MiwiZXhwIjoxNjkwMjE5MTkyLCJpc3MiOiJvdHVzLnNvY2lhbC5uZXR3b3JrIiwiYXVkIjoib3R1cy5zb2NpYWwubmV0d29yayJ9.RuNYPisWcjw0q_N0VNwPgb37tOaF9WxriXziDVEW0Js",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIzY2M3NDRlNS1lYzk1LTQ5MjYtOWE2NC1hYmEyMTk4MTkzMzciLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjNjYzc0NGU1LWVjOTUtNDkyNi05YTY0LWFiYTIxOTgxOTMzNyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJxd2VydHkgMnF3ZXJ0eSIsIm5iZiI6MTY5MDI4NzEyMywiZXhwIjoxNjkwNjQ3MTIzLCJpc3MiOiJvdHVzLnNvY2lhbC5uZXR3b3JrIiwiYXVkIjoib3R1cy5zb2NpYWwubmV0d29yayJ9.UNgo1DrHoxlDbeyvQnMaDyOOUPLcNzhZi7FO_mZ3hx4",
 				"type": "string"
 			}
 		]
@@ -1718,7 +1789,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://localhost:5005"
+			"value": "http://localhost:5000"
 		}
 	]
 }

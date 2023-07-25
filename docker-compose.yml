@@ -37,9 +37,6 @@ services:
       - 15682:15672
       - 5682:5672
     environment:
-      # - RABBITMQ_DEFAULT_USER=rabbit
-      # - RABBITMQ_DEFAULT_PASS=rabbit
-      # - RABBITMQ_DEFAULT_VHOST=/
       - LOG=debug
     volumes:
       - ./volumes/rmq0-data:/var/lib/rabbitmq/mnesia
@@ -61,9 +58,6 @@ services:
         aliases:
           - rmq1.local
     environment:
-      # - RABBITMQ_DEFAULT_USER=rabbit
-      # - RABBITMQ_DEFAULT_PASS=rabbit
-      # - RABBITMQ_DEFAULT_VHOST=/
       - LOG=debug
     volumes:
       - ./volumes/rmq1-data:/var/lib/rabbitmq/mnesia
@@ -82,9 +76,6 @@ services:
         aliases:
           - rmq2.local
     environment:
-      # - RABBITMQ_DEFAULT_USER=rabbit
-      # - RABBITMQ_DEFAULT_PASS=rabbit
-      # - RABBITMQ_DEFAULT_VHOST=/
       - LOG=debug
     volumes:
       - ./volumes/rmq2-data:/var/lib/rabbitmq/mnesia
@@ -108,21 +99,162 @@ services:
     networks:
       - otus-network
 
-  otus-db:
-    image: postgres:14
-    container_name: otus-db
-    restart: unless-stopped
+  citus-master:
+    container_name: citus_master
+    image: "citusdata/citus:12.0.0"
+    ports:
+      - 5432:5432
+    labels: ["com.citusdata.role=Master"]
     environment:
+      CITUS_HOST: "citus_master"
       POSTGRES_DB: "otusdb"
       POSTGRES_USER: "dbuser"
       POSTGRES_PASSWORD: "dbpassword"
-    mem_limit: 512m
-    ports:
-      - 5432:5432
+      PGUSER: "dbuser"
+      PGPASSWORD: "dbpassword"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
     volumes:
-      - ./postgres:/docker-entrypoint-initdb.d # Инициализация таблиц
-      - ./volumes/Database/data:/var/lib/postgresql/data # Папка, где postgres будет хранить данные
-      - ./volumes/Database/backups:/backups # Папка для бекапов
+      - ./volumes/postgres-data-master:/var/lib/postgresql/data
+    networks:
+      - otus-network
+
+  citus-worker-1:
+    container_name: citus_worker-1
+    image: "citusdata/citus:12.0.0"
+    labels: ["com.citusdata.role=Worker"]
+    depends_on:
+      - citus-manager
+    environment:
+      CITUS_HOST: "citus_master"
+      POSTGRES_DB: "otusdb"
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "dbpassword"
+      PGUSER: "dbuser"
+      PGPASSWORD: "dbpassword"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+    volumes:
+      - ./volumes/healthcheck-volume:/healthcheck
+      - ./volumes/postgres-data-worker-1:/var/lib/postgresql/data
+    networks:
+      - otus-network
+
+  citus-worker-2:
+    container_name: citus_worker-2
+    image: "citusdata/citus:12.0.0"
+    labels: ["com.citusdata.role=Worker"]
+    depends_on:
+      - citus-manager
+    environment:
+      CITUS_HOST: "citus_master"
+      POSTGRES_DB: "otusdb"
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "dbpassword"
+      PGUSER: "dbuser"
+      PGPASSWORD: "dbpassword"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+    volumes:
+      - ./volumes/healthcheck-volume:/healthcheck
+      - ./volumes/postgres-data-worker-2:/var/lib/postgresql/data
+    networks:
+      - otus-network
+
+  citus-worker-3:
+    container_name: citus_worker-3
+    image: "citusdata/citus:12.0.0"
+    labels: ["com.citusdata.role=Worker"]
+    depends_on:
+      - citus-manager
+    environment:
+      CITUS_HOST: "citus_master"
+      POSTGRES_DB: "otusdb"
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "dbpassword"
+      PGUSER: "dbuser"
+      PGPASSWORD: "dbpassword"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+    volumes:
+      - ./volumes/healthcheck-volume:/healthcheck
+      - ./volumes/postgres-data-worker-3:/var/lib/postgresql/data
+    networks:
+      - otus-network
+
+  citus-worker-4:
+    container_name: citus_worker-4
+    image: "citusdata/citus:12.0.0"
+    labels: ["com.citusdata.role=Worker"]
+    depends_on:
+      - citus-manager
+    environment:
+      CITUS_HOST: "citus_master"
+      POSTGRES_DB: "otusdb"
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "dbpassword"
+      PGUSER: "dbuser"
+      PGPASSWORD: "dbpassword"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+    volumes:
+      - ./volumes/healthcheck-volume:/healthcheck
+      - ./volumes/postgres-data-worker-4:/var/lib/postgresql/data
+    networks:
+      - otus-network
+
+  citus-worker-5:
+    container_name: citus_worker-5
+    image: "citusdata/citus:12.0.0"
+    labels: ["com.citusdata.role=Worker"]
+    depends_on:
+      - citus-manager
+    environment:
+      CITUS_HOST: "citus_master"
+      POSTGRES_DB: "otusdb"
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "dbpassword"
+      PGUSER: "dbuser"
+      PGPASSWORD: "dbpassword"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+    volumes:
+      - ./volumes/healthcheck-volume:/healthcheck
+      - ./volumes/postgres-data-worker-5:/var/lib/postgresql/data
+    networks:
+      - otus-network
+
+  citus-manager:
+    container_name: citus_manager
+    image: "citusdata/membership-manager:0.3.0"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./volumes/healthcheck-volume:/healthcheck
+      - ./volumes/postgres-data-manager:/var/lib/postgresql/data
+    depends_on:
+      - citus-master
+    environment:
+      CITUS_HOST: "citus_master"
+      POSTGRES_DB: "otusdb"
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "dbpassword"
+      PGUSER: "dbuser"
+      PGPASSWORD: "dbpassword"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
     networks:
       - otus-network
 
@@ -139,7 +271,7 @@ services:
       ASPNETCORE_URLS: "http://+:5001"
       AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
       # Строка подключения к базе данных Postgres
-      DatabaseSettings:ConnStr: "Host=otus-db;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      DatabaseSettings:ConnStr: "Host=citus-master;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
       # Подключение к tarantool
       TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
       TarantoolSettings:Space: "posts"
@@ -156,10 +288,6 @@ services:
       - 5001:5001
     mem_limit: 1024m
     entrypoint: dotnet OtusSocialNetwork.dll
-    depends_on:
-      - otus-db
-      - otus-tarantool
-      - otus-haproxy
     networks:
       - otus-network
 
@@ -188,15 +316,13 @@ services:
       JWTSettings:Issuer: otus.social.network
       JWTSettings:Audience: otus.social.network
       JWTSettings:DurationInMinutes: "60"
+      # Dialogs Mode Postgres
+      ChatMode: "Postgres"
     user: "555:555"
     ports:
       - 5002:5002
     mem_limit: 1024m
     entrypoint: dotnet OtusSocialNetwork.dll
-    depends_on:
-      - otus-db
-      - otus-tarantool
-      - otus-haproxy
     networks:
       - otus-network
 
@@ -225,15 +351,13 @@ services:
       JWTSettings:Issuer: otus.social.network
       JWTSettings:Audience: otus.social.network
       JWTSettings:DurationInMinutes: "60"
+      # Dialogs Mode Postgres
+      ChatMode: "Tarantool"
     user: "555:555"
     ports:
       - 5003:5003
     mem_limit: 1024m
     entrypoint: dotnet OtusSocialNetwork.dll
-    depends_on:
-      - otus-db
-      - otus-tarantool
-      - otus-haproxy
     networks:
       - otus-network
 

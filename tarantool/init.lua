@@ -210,6 +210,36 @@ local function init()
     messages:create_index('message_chatid_secondary', {if_not_exists = true, unique = false, parts = {field_map.chatid}})
     log.info("message_primary:created")
 
+    ---------
+    --- DIALOG MESSAGES
+    ---------
+    -- Create the space
+    dialog_messages = box.schema.create_space('dialog_messages', { if_not_exists = true })
+    log.info("dialog_messages:created")
+    -- Define the format of the tuple
+    local format = {
+        {name = 'id', type = 'string'},
+        {name = 'fromid', type = 'string'},
+        {name = 'toid', type = 'string'},
+        {name = 'messagetext', type = 'string'},
+        {name = 'timestamp', type = 'string'}
+    }
+    -- Create the field map
+    local field_map = {}
+    for i, field in ipairs(format) do
+        field_map[field.name] = i
+    end
+    -- Set the format of the space
+    dialog_messages:format(format)
+    log.info("dialog_messages:formatted")
+     -- Create an index on the ID field
+    dialog_messages:create_index('dialog_messages_primary', { if_not_exists = true, unique = true, type = 'tree', parts = {field_map.id} })
+    log.info("dialog_messages_primary:created")
+     -- Create an index on the userIds field
+    dialog_messages:create_index('dialog_messages_secondary', {if_not_exists = true, unique = false, parts = {field_map.fromid, field_map.toid}})
+    log.info("dialog_messages_secondary:created")
+
+
 end
 
 function delete_usersockets_by_user(userid)
@@ -354,12 +384,45 @@ function get_messages_for_chat(chatid)
     return result
 end
 
+function get_messages_for_dialog(fromid, toid)
+    local space = box.space.dialog_messages
+    local index = space.index.dialog_messages_secondary
+    local data = {}
+    local id = 0
+
+    local data1 = index:select({fromid, toid})
+    if data1 ~= nil then
+        for idx, item in ipairs(data1) do
+            id = id + 1
+            data[id] = item
+        end
+    end
+
+    local data2 = index:select({toid, fromid})
+    if data2 ~= nil then
+        for idx, item in ipairs(data2) do
+            id = id + 1
+            data[id] = item
+        end
+    end
+
+    return data
+end
+
 function create_message(id, chatid, userid, messagetext, timestamp)
     -- Get the space object
     local space = box.space.messages
 
     -- Insert a new tuple with the provided values
     space:insert{id, chatid, userid, messagetext, timestamp}
+end
+
+function create_dialog_message(id, fromid, toid, messagetext, timestamp)
+    -- Get the space object
+    local space = box.space.dialog_messages
+
+    -- Insert a new tuple with the provided values
+    space:insert{id, fromid, toid, messagetext, timestamp}
 end
 
 function delete_message(id)
@@ -425,6 +488,7 @@ function data()
     local chats = box.space.chats
     local chats_and_users = box.space.chats_and_users
     local messages = box.space.messages
+    local dialog_messages = box.space.dialog_messages
 
     -- Define the values for the new chat item
     local id = "b65ec3ae-cc92-4ad2-a6a6-1340503a648e"
@@ -453,6 +517,17 @@ function data()
             end
         end
         log.info("messages created")
+    end
+
+    if dialog_messages:len() == 0 then
+        -- insert messages
+        for i = 1,1000,1 do
+            dialog_messages:insert({uuid.str(), user_ids_str[1], user_ids_str[2],
+            'some interesting message number ' .. i .. ' from ' .. user_ids_str[1], os.date("!%Y-%m-%dT%H:%M:%SZ") })
+            dialog_messages:insert({uuid.str(), user_ids_str[2], user_ids_str[1],
+            'some interesting message number ' .. i .. ' from ' .. user_ids_str[1], os.date("!%Y-%m-%dT%H:%M:%SZ") })
+        end
+        log.info("dialog_messages created")
     end
 
     -- local status, result = pcall(function()

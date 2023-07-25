@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Npgsql;
 
 using OtusSocialNetwork.Database.Entities;
+using OtusSocialNetwork.DataClasses.Dtos;
 
 using System.Data;
 using static System.Net.Mime.MediaTypeNames;
@@ -546,6 +547,57 @@ public class DatabaseContext : IDatabaseContext, IDisposable
 
         var items = await con.QueryAsync<ChatView>(sql, new { chat_id = chatId, user_id = userId });
         return (true, "OK", items.FirstOrDefault());
+    }
+
+
+    #endregion
+
+    #region Dialog
+    public async Task<(bool isSuccess, string msg)> SendDialogMessage(string fromId, string toId, string message)
+    {
+        await using var con = await db.OpenConnectionAsync();
+        // Create chatId
+        var messageId = Guid.NewGuid();
+        // Create chat
+        await using var cmd = new NpgsqlCommand("""
+            INSERT INTO public.messages
+            (id, from_user_id, to_user_id, message_text, "timestamp")
+            VALUES(@id, @fromId, @toId, @message, @timestamp);
+            
+            """, con)
+        {
+            Parameters =
+                {
+                    new("id", messageId),
+                    new("fromId", fromId),
+                    new("toId", toId),
+                    new("message", message),
+                    new("timestamp", DateTime.UtcNow)
+                }
+        };
+        await cmd.ExecuteNonQueryAsync();
+
+        return (true, messageId.ToString());
+    }
+
+    public async Task<(bool isSuccess, string msg, List<DialogMessageDTO> messages)> GetDialogMessages(string fromId, string toId)
+    {
+        await using var con = await db.OpenConnectionAsync();
+
+        var sql = """
+            SELECT id, from_user_id as FromUserId, to_user_id as ToUserId, message_text as MessageText, "timestamp" as Timestamp
+            FROM public.messages
+            where 
+            (from_user_id = @user1 and to_user_id = @user2)
+            or 
+            (from_user_id = @user2 and to_user_id = @user1)
+            order by "timestamp" 
+            """;
+
+        var items = await con.QueryAsync<DialogMessageEntity>(sql, new { @user1 = fromId, @user2 = toId });
+        
+        var res = items.Select(o => new DialogMessageDTO(o.FromUserId.ToString(), o.ToUserId.ToString(), o.MessageText, o.Timestamp)).ToList();
+        return (true, "OK", res);
     }
     #endregion
 }
