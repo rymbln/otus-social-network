@@ -28,6 +28,8 @@ docker compose up -d citus-master citus-manager citus-worker-1 citus-worker-2 ci
 
 docker compose up -d citus-worker-4 citus-worker-5
 
+docker compose up -d pgbouncer citus-master citus-manager citus-worker-1 citus-worker-2 citus-worker-3 citus-worker-4 citus-worker-5
+
 # Запуск rabbit
 
 docker compose up -d otus-haproxy otus-rmq0 otus-rmq1 otus-rmq2

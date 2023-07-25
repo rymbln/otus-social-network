@@ -99,11 +99,42 @@ services:
     networks:
       - otus-network
 
+  pgbouncer:
+    image: edoburu/pgbouncer
+    container_name: pgbouncer
+    hostname: pgbouncer
+    environment:
+      - DB_USER=dbuser
+      - DB_PASSWORD=dbpassword
+      - DB_HOST=citus_master
+      - DB_NAME=otusdb
+      - POOL_MODE=transaction
+      - ADMIN_USERS=postgres,dbuser
+      #  - PGBOUNCER_AUTH_USER=dbuser
+      #  - PGBOUNCER_MAX_CLIENT_CONN=1000
+      #  - PGBOUNCER_POOL_MODE=session
+      #  - PGBOUNCER_PORT=6432
+      #  - PGBOUNCER_SET_DATABASE_PASSWORD=dbuser
+      #  - PGBOUNCER_SET_DATABASE_USER=dbuser
+      #  - PGBOUNCER_STATS_USERS=dbuser
+      #  - POSTGRESQL_DATABASE=otusdb
+      #  - POSTGRESQL_HOST=192.168.176.2
+      #  - POSTGRESQL_PASSWORD=dbpassword
+      #  - POSTGRESQL_USERNAME=dbuser
+      #  - POSTGRESQL_PORT=5432
+    ports:
+      - "5432:5432"
+    # volumes:
+    #   - ./pgbouncer/:/bitnami/pgbouncer/conf/
+    networks:
+      - otus-network
+    depends_on:
+      - citus-master
+
   citus-master:
     container_name: citus_master
+    hostname: citus_master
     image: "citusdata/citus:12.0.0"
-    ports:
-      - 5432:5432
     labels: ["com.citusdata.role=Master"]
     environment:
       CITUS_HOST: "citus_master"
@@ -113,6 +144,9 @@ services:
       PGUSER: "dbuser"
       PGPASSWORD: "dbpassword"
       POSTGRES_HOST_AUTH_METHOD: "trust"
+    command: ["postgres", "-c", "max_connections=10000", "-c", "shared_buffers=8GB"]
+    # ports:
+    #   - "5432:5432"
     volumes:
       - ./volumes/postgres-data-master:/var/lib/postgresql/data
     networks:
@@ -132,10 +166,7 @@ services:
       PGUSER: "dbuser"
       PGPASSWORD: "dbpassword"
       POSTGRES_HOST_AUTH_METHOD: "trust"
-    command:
-      - "postgres"
-      - "-c"
-      - "wal_level=logical"
+    command: ["postgres", "-c", "wal_level=logical"]
     volumes:
       - ./volumes/healthcheck-volume:/healthcheck
       - ./volumes/postgres-data-worker-1:/var/lib/postgresql/data
@@ -156,10 +187,7 @@ services:
       PGUSER: "dbuser"
       PGPASSWORD: "dbpassword"
       POSTGRES_HOST_AUTH_METHOD: "trust"
-    command:
-      - "postgres"
-      - "-c"
-      - "wal_level=logical"
+    command: ["postgres", "-c", "wal_level=logical"]
     volumes:
       - ./volumes/healthcheck-volume:/healthcheck
       - ./volumes/postgres-data-worker-2:/var/lib/postgresql/data
@@ -180,10 +208,7 @@ services:
       PGUSER: "dbuser"
       PGPASSWORD: "dbpassword"
       POSTGRES_HOST_AUTH_METHOD: "trust"
-    command:
-      - "postgres"
-      - "-c"
-      - "wal_level=logical"
+    command: ["postgres", "-c", "wal_level=logical"]
     volumes:
       - ./volumes/healthcheck-volume:/healthcheck
       - ./volumes/postgres-data-worker-3:/var/lib/postgresql/data
@@ -204,10 +229,7 @@ services:
       PGUSER: "dbuser"
       PGPASSWORD: "dbpassword"
       POSTGRES_HOST_AUTH_METHOD: "trust"
-    command:
-      - "postgres"
-      - "-c"
-      - "wal_level=logical"
+    command: ["postgres", "-c", "wal_level=logical"]
     volumes:
       - ./volumes/healthcheck-volume:/healthcheck
       - ./volumes/postgres-data-worker-4:/var/lib/postgresql/data
@@ -228,10 +250,7 @@ services:
       PGUSER: "dbuser"
       PGPASSWORD: "dbpassword"
       POSTGRES_HOST_AUTH_METHOD: "trust"
-    command:
-      - "postgres"
-      - "-c"
-      - "wal_level=logical"
+    command: ["postgres", "-c", "wal_level=logical"]
     volumes:
       - ./volumes/healthcheck-volume:/healthcheck
       - ./volumes/postgres-data-worker-5:/var/lib/postgresql/data
@@ -271,7 +290,7 @@ services:
       ASPNETCORE_URLS: "http://+:5001"
       AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
       # Строка подключения к базе данных Postgres
-      DatabaseSettings:ConnStr: "Host=citus-master;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      DatabaseSettings:ConnStr: "Host=pgbouncer;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
       # Подключение к tarantool
       TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
       TarantoolSettings:Space: "posts"
@@ -304,7 +323,7 @@ services:
       ASPNETCORE_URLS: "http://+:5002"
       AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
       # Строка подключения к базе данных Postgres
-      DatabaseSettings:ConnStr: "Host=citus-master;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      DatabaseSettings:ConnStr: "Host=pgbouncer;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
       # Подключение к tarantool
       TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
       TarantoolSettings:Space: "posts"
@@ -339,7 +358,7 @@ services:
       ASPNETCORE_URLS: "http://+:5003"
       AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
       # Строка подключения к базе данных Postgres
-      DatabaseSettings:ConnStr: "Host=citus-master;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      DatabaseSettings:ConnStr: "Host=pgbouncer;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
       # Подключение к tarantool
       TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
       TarantoolSettings:Space: "posts"
