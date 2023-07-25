@@ -304,7 +304,7 @@ services:
       ASPNETCORE_URLS: "http://+:5002"
       AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
       # Строка подключения к базе данных Postgres
-      DatabaseSettings:ConnStr: "Host=otus-db;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      DatabaseSettings:ConnStr: "Host=citus-master;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
       # Подключение к tarantool
       TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
       TarantoolSettings:Space: "posts"
@@ -339,7 +339,7 @@ services:
       ASPNETCORE_URLS: "http://+:5003"
       AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
       # Строка подключения к базе данных Postgres
-      DatabaseSettings:ConnStr: "Host=otus-db;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      DatabaseSettings:ConnStr: "Host=citus-master;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
       # Подключение к tarantool
       TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
       TarantoolSettings:Space: "posts"

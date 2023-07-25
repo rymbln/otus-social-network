@@ -215,7 +215,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseCors("CorsPolicy");
 
@@ -226,10 +226,8 @@ app.UseDefaultPage();
 
 
 
-//app.UseRouting();
 app.MapControllers();
 app.MapHub<PostHub>("/ws/feed/news");
 app.MapHub<ChatHub>("/ws/feed/chat");
-//app.MapHub<ChartHub>("/chart");
 
 app.Run();
