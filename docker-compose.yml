@@ -281,7 +281,7 @@ services:
     image: otus-api-image
     build:
       context: ./webapi
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile.webapi
     container_name: otus-api-1
     restart: always
     environment:
@@ -302,10 +302,11 @@ services:
       JWTSettings:Issuer: otus.social.network
       JWTSettings:Audience: otus.social.network
       JWTSettings:DurationInMinutes: "60"
+      # Dialogs GRPC Service
+      DialogServiceHost: "http://otus-dialogs:5147"
     user: "555:555"
     ports:
       - 5001:5001
-    mem_limit: 1024m
     entrypoint: dotnet OtusSocialNetwork.dll
     networks:
       - otus-network
@@ -314,7 +315,7 @@ services:
     image: otus-api-image
     build:
       context: ./webapi
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile.webapi
     container_name: otus-api-2
     restart: always
     environment:
@@ -337,10 +338,11 @@ services:
       JWTSettings:DurationInMinutes: "60"
       # Dialogs Mode Postgres
       ChatMode: "Postgres"
+      # Dialogs GRPC Service
+      DialogServiceHost: "http://otus-dialogs:5147"
     user: "555:555"
     ports:
       - 5002:5002
-    mem_limit: 1024m
     entrypoint: dotnet OtusSocialNetwork.dll
     networks:
       - otus-network
@@ -349,7 +351,7 @@ services:
     image: otus-api-image
     build:
       context: ./webapi
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile.webapi
     container_name: otus-api-3
     restart: always
     environment:
@@ -372,11 +374,30 @@ services:
       JWTSettings:DurationInMinutes: "60"
       # Dialogs Mode Postgres
       ChatMode: "Tarantool"
+      # Dialogs GRPC Service
+      DialogServiceHost: "http://otus-dialogs:5147"
     user: "555:555"
     ports:
       - 5003:5003
-    mem_limit: 1024m
     entrypoint: dotnet OtusSocialNetwork.dll
+    networks:
+      - otus-network
+
+  otus-dialogs:
+    image: otus-dialogs-image
+    build:
+      context: ./webapi
+      dockerfile: ./Dockerfile.grpc
+    container_name: otus-dialogs
+    restart: always
+    environment:
+      # Подключение к tarantool
+      TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
+      TarantoolSettings:Space: ""
+    user: "555:555"
+    ports:
+      - 5147:5147
+    entrypoint: dotnet OtusDialogsGrpc.dll
     networks:
       - otus-network
 
@@ -387,7 +408,6 @@ services:
       context: ./angular
       dockerfile: ./Dockerfile
     restart: always
-    mem_limit: 256m
     ports:
       - 4200:80
     networks:

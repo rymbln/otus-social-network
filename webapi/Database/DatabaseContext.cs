@@ -6,6 +6,8 @@ using Microsoft.Extensions.Options;
 
 using Npgsql;
 
+using OtusClasses.DataClasses.Dtos;
+
 using OtusSocialNetwork.Database.Entities;
 using OtusSocialNetwork.DataClasses.Dtos;
 

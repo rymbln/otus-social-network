@@ -1,4 +1,7 @@
 ﻿using System;
+
+using OtusClasses.DataClasses.Dtos;
+
 using OtusSocialNetwork.DataClasses.Dtos;
 
 namespace OtusSocialNetwork.Tarantool;

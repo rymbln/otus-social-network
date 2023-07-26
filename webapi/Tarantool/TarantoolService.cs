@@ -13,6 +13,8 @@ using ProGaudi.Tarantool.Client.Model.UpdateOperations;
 using System.Reflection;
 using ProGaudi.Tarantool.Client.Model.Responses;
 using MsgPack;
+using OtusClasses.Settings;
+using OtusClasses.DataClasses.Dtos;
 
 namespace OtusSocialNetwork.Tarantool;
 

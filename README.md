@@ -41,6 +41,11 @@ docker compose up -d otus-tarantool
 # Запуск api
 docker compose up -d otus-api-1 otus-api-2 otus-api-3 otus-web
 
+# Запуск grpc
+
+docker compose up -d otus-dialogs
+
+
 ```
 
 ### Задание Масштабируемая подсистема диалогов
@@ -59,5 +64,16 @@ docker compose up -d otus-api-1 otus-api-2 otus-api-3 otus-web
 9. Параллельно можно запускать вызовы в Postman - они выполняются.
 10. Дожидаемся завершения процесса решардинга.
 
+### Задание Масштабируемая подсистема диалогов
+
+1. Запускаем citus-postgres `docker compose up -d pgbouncer citus-master citus-manager citus-worker-1 citus-worker-2 citus-worker-3 citus-worker-4 citus-worker-5`
+2. Запускаем запрос из файла `postgres\create-tables.sql` чтобы создать нужные таблицы
+3. Запускаем rabbit `docker compose up -d otus-haproxy otus-rmq0 otus-rmq1 otus-rmq2`
+4. Запускаем tarantool `docker compose up -d otus-tarantool`
+5. Запускаем api `docker compose up -d otus-api-1 otus-api-2 otus-api-3 otus-web`
+6. Запускаем gRPC сервис с диалогами `docker compose up -d otus-dialogs`
+7. Проверяем работу диалогов с помощью postman методов для REST и для GRPC
+8. Для совместимости, вызовы по REST для api/dialogs оставлены, внутри они вызывают gRPC-сервис с помощью клиента DialogsService
+9. Описание сервиса в webapi\OtusClasses\Proto\dialogs.proto
 
 

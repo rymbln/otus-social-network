@@ -1,8 +1,15 @@
 ﻿using AutoMapper;
 
+using Google.Protobuf.Collections;
+
+using OtusClasses;
+using OtusClasses.DataClasses.Dtos;
+
 using OtusSocialNetwork.Database.Entities;
 using OtusSocialNetwork.DataClasses.Dtos;
 using OtusSocialNetwork.DataClasses.Requests;
+
+using static OtusClasses.DialogReply.Types;
 
 namespace OtusSocialNetwork.DataClasses.Mapper;
 

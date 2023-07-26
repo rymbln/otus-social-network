@@ -1,4 +1,6 @@
-﻿using OtusSocialNetwork.Database.Entities;
+﻿using OtusClasses.DataClasses.Dtos;
+
+using OtusSocialNetwork.Database.Entities;
 using OtusSocialNetwork.DataClasses.Dtos;
 
 namespace OtusSocialNetwork.Database;
