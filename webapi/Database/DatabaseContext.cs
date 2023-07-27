@@ -21,19 +21,19 @@ public class DatabaseContext : IDatabaseContext, IDisposable
     public DatabaseContext(IOptions<DatabaseSettings> settings)
     {
         connStr = settings.Value.ConnStr;
-        // connStrReplica = settings.Value.ConnStrReplica;
+        connStrReplica = settings.Value.ConnStrReplica;
 
         db = NpgsqlDataSource.Create(connStr);
-        // dbReplica = NpgsqlDataSource.Create(connStrReplica);
+        dbReplica = NpgsqlDataSource.Create(connStrReplica);
     }
     private readonly string connStr;
-    // private readonly string connStrReplica;
+    private readonly string connStrReplica;
     private readonly NpgsqlDataSource db;
-    // private readonly NpgsqlDataSource dbReplica;
+    private readonly NpgsqlDataSource dbReplica;
     public async void Dispose()
     {
         await this.db.DisposeAsync();
-        // await this.dbReplica.DisposeAsync();
+        await this.dbReplica.DisposeAsync();
     }
 
     #region Accounts
@@ -204,9 +204,16 @@ public class DatabaseContext : IDatabaseContext, IDisposable
     }
     public async Task<(bool isSuccess, string msg, PostEntity post)> GetPost(string id, string userId)
     {
-        await using var con = await db.OpenConnectionAsync();
+        await using var con = await dbReplica.OpenConnectionAsync();
 
-        var sql = "SELECT id, author_user_id, post_text, \"timestamp\"\nFROM public.posts where author_user_id = @userId and id = @id;\n";
+        var sql = "select p.id as PostId," +
+           "p.post_text as PostText," +
+           "p.\"timestamp\" as  Timestamp," +
+           "p.author_user_id as FriendId, " +
+           "concat(u.first_name , ' ' , u.second_name) as FriendName" +
+           " from public.posts p " +
+           " inner join \"user\" u on p.author_user_id = u.id " +
+           " WHERE p.id = @id and p.author_user_id = @userId";
         var item = await con.QueryFirstOrDefaultAsync<PostEntity>(sql, new { userId = userId, id = id });
         if (item != null)
         return (true, "OK", item);
@@ -216,7 +223,7 @@ public class DatabaseContext : IDatabaseContext, IDisposable
 
     public async Task<(bool isSuccess, string msg, PostView post)> GetPost(string id)
     {
-        await using var con = await db.OpenConnectionAsync();
+        await using var con = await dbReplica.OpenConnectionAsync();
 
         var sql = "select p.id as PostId," +
             "p.post_text as PostText," +
@@ -235,7 +242,7 @@ public class DatabaseContext : IDatabaseContext, IDisposable
 
     public async Task<(bool isSuccess, string msg, List<PostEntity> posts)> GetPosts(string userId)
     {
-        await using var con = await db.OpenConnectionAsync();
+        await using var con = await dbReplica.OpenConnectionAsync();
 
         var sql = """
                         SELECT

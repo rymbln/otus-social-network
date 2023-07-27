@@ -24,21 +24,17 @@ public class PostController : ControllerBase
 	private readonly IAuthenticatedUserService _auth;
 	private readonly IDatabaseContext _db;
 	private readonly IMapper _mapper;
-    private readonly IPublishEndpoint _rabbit;
-    private readonly IHubContext<PostHub> _hub;
 	private readonly Microsoft.Extensions.Hosting.IHostingEnvironment _host;
 
 
-	public PostController(IAuthenticatedUserService auth, IDatabaseContext db, IMapper mapper,
-        Microsoft.Extensions.Hosting.IHostingEnvironment host,
-		IPublishEndpoint rabbit,
-		IHubContext<PostHub> hub)
+	public PostController(IAuthenticatedUserService auth, IDatabaseContext db, 
+		IMapper mapper,
+        Microsoft.Extensions.Hosting.IHostingEnvironment host
+		)
 	{
 		_auth = auth;
 		_db = db;
 		_mapper = mapper;
-		_rabbit = rabbit;
-		_hub = hub;
 		_host = host;
 
 	}
@@ -75,7 +71,7 @@ public class PostController : ControllerBase
 	{
         if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");
 
-		var dbRes = await _db.GetPost(id, _auth.UserId);
+		var dbRes = await _db.GetPost(id);
         if (!dbRes.isSuccess) return BadRequest(new ErrorRes(dbRes.msg));
 
         var res = _mapper.Map<PostDto>(dbRes.post);
@@ -102,15 +98,6 @@ public class PostController : ControllerBase
 		var friends = await _db.GetFriends(_auth.UserId);
         if (!friends.isSuccess) return BadRequest(new ErrorRes(friends.msg));
 
-		// Get count of friens. If more than 1000, update feed
-		if (friends.data.Count >= 2 || _host.IsDevelopment())
-		{
-			// Write to tarantool
-			await _rabbit.Publish<INotificationFeedAdd>(
-				new NotificationFeedAdd(friends.data.Select(o => o.Id).ToList(), postId, postDto)
-				);
-		}
-
 		return Ok(postDto);
 	}
 
@@ -129,15 +116,7 @@ public class PostController : ControllerBase
         // Get Friends
         var friends = await _db.GetFriends(_auth.UserId);
         if (!friends.isSuccess) return BadRequest(new ErrorRes(friends.msg));
-		// Get count of friens. If more than 1000, update feed
-		if (friends.data.Count >= 2 || _host.IsDevelopment())
-		{
-
-			// Write to tarantool
-			await _rabbit.Publish<INotificationFeedUpdate>(
-			new NotificationFeedUpdate(req.Id, postDto)
-			);
-		}
+		
         return Ok(new DefaultRes(res.msg));
     }
 
@@ -154,13 +133,7 @@ public class PostController : ControllerBase
         var friends = await _db.GetFriends(_auth.UserId);
         if (!friends.isSuccess) return BadRequest(new ErrorRes(friends.msg));
 		// Get count of friens. If more than 1000, update feed
-		if (friends.data.Count >= 2 || _host.IsDevelopment())
-		{
-			// Write to tarantool
-			await _rabbit.Publish<INotificationFeedDelete>(
-			new NotificationFeedDelete(id)
-			);
-		}
+		
         return Ok(new DefaultRes(res.msg));
     }
 }

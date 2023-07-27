@@ -5,10 +5,13 @@ services:
     container_name: haproxy
     ports:
       - 5432:5432
+      - 5433:5433
       - 1936:1936
     volumes:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
     restart: unless-stopped
+    networks:
+    - otus-network
   postgresql-master:
     image: 'bitnami/postgresql:latest'
     container_name: postgresql-master
@@ -23,6 +26,8 @@ services:
       - POSTGRESQL_DATABASE=otusdb
       - POSTGRESQL_SYNCHRONOUS_COMMIT_MODE=on
       - POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS=1
+    networks:
+    - otus-network
   postgresql-slave-1:
     image: 'bitnami/postgresql:latest'
     container_name: postgresql-slave-1
@@ -35,6 +40,8 @@ services:
       - POSTGRESQL_MASTER_HOST=postgresql-master
       - POSTGRESQL_PASSWORD=dbpassword
       - POSTGRESQL_MASTER_PORT_NUMBER=5432
+    networks:
+    - otus-network
   postgresql-slave-2:
     image: 'bitnami/postgresql:latest'
     container_name: postgresql-slave-2
@@ -47,6 +54,8 @@ services:
       - POSTGRESQL_MASTER_HOST=postgresql-master
       - POSTGRESQL_PASSWORD=dbpassword
       - POSTGRESQL_MASTER_PORT_NUMBER=5432
+    networks:
+    - otus-network
   postgresql-slave-3:
     image: 'bitnami/postgresql:latest'
     container_name: postgresql-slave-3
@@ -59,6 +68,8 @@ services:
       - POSTGRESQL_MASTER_HOST=postgresql-master
       - POSTGRESQL_PASSWORD=dbpassword
       - POSTGRESQL_MASTER_PORT_NUMBER=5432
+    networks:
+    - otus-network
   otus-api-1:
     image: otus-api-image
     build:
@@ -71,6 +82,7 @@ services:
       ASPNETCORE_URLS: "http://+:5000"
       AllowedHosts: "*"
       DatabaseSettings:ConnStr: "Host=haproxy;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      DatabaseSettings:ConnStrReplica: "Host=haproxy;Port=5433;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
       JWTSettings:Key: "verystrongkeyforauthtoken"
       JWTSettings:Issuer: otus.social.network
       JWTSettings:Audience: otus.social.network
@@ -82,7 +94,7 @@ services:
     depends_on:
     - haproxy
     networks:
-      - otus-network
+    - otus-network
   otus-api-2:
     image: otus-api-image
     build:
@@ -95,6 +107,7 @@ services:
       ASPNETCORE_URLS: "http://+:5000"
       AllowedHosts: "*"
       DatabaseSettings:ConnStr: "Host=haproxy;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      DatabaseSettings:ConnStrReplica: "Host=haproxy;Port=5433;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
       JWTSettings:Key: "verystrongkeyforauthtoken"
       JWTSettings:Issuer: otus.social.network
       JWTSettings:Audience: otus.social.network
@@ -119,6 +132,7 @@ services:
       ASPNETCORE_URLS: "http://+:5000"
       AllowedHosts: "*"
       DatabaseSettings:ConnStr: "Host=haproxy;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      DatabaseSettings:ConnStrReplica: "Host=haproxy;Port=5433;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
       JWTSettings:Key: "verystrongkeyforauthtoken"
       JWTSettings:Issuer: otus.social.network
       JWTSettings:Audience: otus.social.network

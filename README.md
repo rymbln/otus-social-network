@@ -77,3 +77,6 @@ docker compose up -d otus-dialogs
 9. Описание сервиса в webapi\OtusClasses\Proto\dialogs.proto
 
 
+### Задание Отказоустойчивость приложений
+
+Запускаем `docker compose up -d`
