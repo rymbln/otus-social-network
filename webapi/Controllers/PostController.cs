@@ -71,7 +71,7 @@ public class PostController : ControllerBase
 	{
         if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");
 
-		var dbRes = await _db.GetPost(id);
+		var dbRes = await _db.GetPost(id, _auth.UserId);
         if (!dbRes.isSuccess) return BadRequest(new ErrorRes(dbRes.msg));
 
         var res = _mapper.Map<PostDto>(dbRes.post);
