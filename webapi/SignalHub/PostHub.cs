@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using OtusSocialNetwork.Database;
 using OtusSocialNetwork.Services;
-using OtusSocialNetwork.Tarantool;
 
 namespace OtusSocialNetwork.SignalHub;
 
@@ -13,14 +12,12 @@ namespace OtusSocialNetwork.SignalHub;
 public class PostHub: Hub
 {
     private readonly IAuthenticatedUserService authenticatedUserService;
-    private readonly ITarantoolService _tarantool;
     private readonly IDatabaseContext _db;
 
-    public PostHub(IAuthenticatedUserService auth, ITarantoolService tarantool,
+    public PostHub(IAuthenticatedUserService auth, 
         IDatabaseContext db)
 	{
         authenticatedUserService = auth;
-        _tarantool = tarantool;
         _db = db;
 	}
 
@@ -29,9 +26,6 @@ public class PostHub: Hub
     {
         var friends = await _db.GetFriends(data.AuthorUserId);
         var friendIds = friends.data.Select(o => o.Id).ToList();
-        var connections = await _tarantool.GetConnectedUsers(friendIds);
-        if (connections.Count > 0)
-        await Clients.Clients(connections).SendAsync("Posted", data);
     }
 
     public override async Task OnConnectedAsync()
@@ -39,7 +33,6 @@ public class PostHub: Hub
         var connectionId = Context.ConnectionId;
         var userId = authenticatedUserService.UserId;
 
-        await _tarantool.AddUserSocket(userId, connectionId);
 
         await Clients.Caller.SendAsync("Connected", "You are now connected to the WebSocket.");
         await base.OnConnectedAsync();
@@ -47,7 +40,6 @@ public class PostHub: Hub
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        await _tarantool.DeleteUserSocket(string.Empty, Context.ConnectionId);
     }
 
     public string GetConnectionId() => Context.ConnectionId;

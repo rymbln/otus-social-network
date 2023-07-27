@@ -13,7 +13,6 @@ using OtusSocialNetwork.DataClasses.Requests;
 using OtusSocialNetwork.DataClasses.Responses;
 using OtusSocialNetwork.Services;
 using OtusSocialNetwork.SignalHub;
-using OtusSocialNetwork.Tarantool;
 
 namespace OtusSocialNetwork.Controllers;
 
@@ -25,7 +24,6 @@ public class PostController : ControllerBase
 	private readonly IAuthenticatedUserService _auth;
 	private readonly IDatabaseContext _db;
 	private readonly IMapper _mapper;
-	private readonly ITarantoolService _tarantool;
     private readonly IPublishEndpoint _rabbit;
     private readonly IHubContext<PostHub> _hub;
 	private readonly Microsoft.Extensions.Hosting.IHostingEnvironment _host;
@@ -33,14 +31,12 @@ public class PostController : ControllerBase
 
 	public PostController(IAuthenticatedUserService auth, IDatabaseContext db, IMapper mapper,
         Microsoft.Extensions.Hosting.IHostingEnvironment host,
-		ITarantoolService tarantool,
 		IPublishEndpoint rabbit,
 		IHubContext<PostHub> hub)
 	{
 		_auth = auth;
 		_db = db;
 		_mapper = mapper;
-		_tarantool = tarantool;
 		_rabbit = rabbit;
 		_hub = hub;
 		_host = host;
@@ -70,9 +66,7 @@ public class PostController : ControllerBase
 	{
         if (string.IsNullOrEmpty(_auth.UserId)) return BadRequest("User not found");
 
-		var res = await _tarantool.ReadPosts(_auth.UserId);
-
-		return Ok(res.OrderByDescending(o => o.TimeStamp));
+		return Ok();
     }
 
 	[Authorize]

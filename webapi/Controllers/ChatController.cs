@@ -15,7 +15,6 @@ using OtusSocialNetwork.DataClasses.Dtos;
 using OtusSocialNetwork.DataClasses.Responses;
 using OtusSocialNetwork.Services;
 using OtusSocialNetwork.SignalHub;
-using OtusSocialNetwork.Tarantool;
 
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -28,7 +27,6 @@ public class ChatController : ControllerBase
 {
     private readonly IAuthenticatedUserService _auth;
     private readonly IDatabaseContext _db;
-    private readonly ITarantoolService _tarantool;
     private readonly IMapper _mapper;
     private readonly IPublishEndpoint _rabbit;
     private readonly IHubContext<ChatHub> _hub;
@@ -37,7 +35,6 @@ public class ChatController : ControllerBase
 
     public ChatController(IAuthenticatedUserService auth,
         IDatabaseContext db,
-        ITarantoolService tarantool,
         IMapper mapper,
         IPublishEndpoint rabbit,
         IConfiguration config,
@@ -45,7 +42,6 @@ public class ChatController : ControllerBase
     {
         _auth = auth;
         _db = db;
-        _tarantool = tarantool;
         _mapper = mapper;
         _rabbit = rabbit;
         _hub = hub;
@@ -65,12 +61,7 @@ public class ChatController : ControllerBase
             res = data.chats;
         } else
         {
-            var data = await _tarantool.GetChats(_auth.UserId);
-            foreach (var item in data)
-            {
-                var friend = item.UserIds.Where( o=> o != _auth.UserId).First();
-                res.Add(new ChatView(item.Id, item.Name, friend, string.Empty));
-            }
+           
         }
 
         return Ok(res);
@@ -85,7 +76,6 @@ public class ChatController : ControllerBase
             if (!res.isSuccess) return BadRequest(new ErrorRes(res.msg));
         } else
         {
-            await _tarantool.CreateChat(Guid.NewGuid().ToString(), $"Chat {DateTime.Now}", new List<string> { _auth.UserId, form.UserId });
         }
         return Ok();
     }
@@ -99,7 +89,6 @@ public class ChatController : ControllerBase
             if (!res.isSuccess) return BadRequest(new ErrorRes(res.msg));
         } else
         {
-            await _tarantool.DeleteChat(chatId);
         }
         return Ok();
     }
@@ -115,11 +104,6 @@ public class ChatController : ControllerBase
         }
         else
         {
-            var data = await _tarantool.GetMessages(chatId);
-            foreach (var item in data)
-            {
-                res.Add(new ChatMessageView(item.Id, item.ChatId, item.UserId, string.Empty, item.Message, false, item.Timestamp));
-            }
         }
         return Ok(res.OrderBy(o => o.Timestamp));
     }
@@ -144,23 +128,12 @@ public class ChatController : ControllerBase
         }
         else
         {
-            var chat = await _tarantool.GetChat(chatId);
-            if (chat != null)
-            {
-                chatName = chat.Name;
-                correspondent = chat.UserIds.Where( o => o != _auth.UserId).FirstOrDefault() ?? string.Empty;
-            }
-            await _tarantool.AddMessage(Guid.NewGuid().ToString(), chatId, _auth.UserId, form.Message);
+          
         }
 
         // Send notifications
       
-        var connections = await _tarantool.GetUserChatSockets(correspondent);
-        if (connections.Count > 0)
-        {
-            var connIds = connections.Select(x => x.ConnectionId).ToList();
-            await _hub.Clients.Clients(connIds).SendAsync("Received", new MessageHubModel(correspondent, chatName, messageText));
-        }
+      
         return Ok();
     }
 
@@ -173,7 +146,6 @@ public class ChatController : ControllerBase
             if (!res.isSuccess) return BadRequest(new ErrorRes(res.msg));
         } else
         {
-            await _tarantool.DeleteMessage(id);
         }
         return Ok();
     }

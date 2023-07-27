@@ -9,7 +9,6 @@ using OtusSocialNetwork.DataClasses.Dtos;
 using OtusSocialNetwork.DataClasses.Notifications;
 using OtusSocialNetwork.DataClasses.Responses;
 using OtusSocialNetwork.Services;
-using OtusSocialNetwork.Tarantool;
 
 namespace OtusSocialNetwork.Controllers;
 

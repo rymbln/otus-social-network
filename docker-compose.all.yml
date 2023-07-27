@@ -1,0 +1,419 @@
+﻿version: "3.9"
+
+services:
+
+  otus-haproxy:
+    container_name: "otus-haproxy"
+    image: haproxy:latest
+    restart: unless-stopped
+    ports:
+      - 5005:5005
+      - 8404:8404
+      - 15672:15672
+      - 5672:5672
+      - 1936:1936
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    networks:
+      otus-network:
+        aliases:
+          - haproxy.local
+    depends_on:
+      - otus-rmq0
+      - otus-rmq1
+      - otus-rmq2
+
+  otus-rmq0:
+    build: rabbit
+    container_name: "otus-rmq0"
+    image: otus-rabbit
+    restart: on-failure
+    hostname: rmq0
+    networks:
+      otus-network:
+        aliases:
+          - rmq0.local
+    ports:
+      - 15682:15672
+      - 5682:5672
+    environment:
+      - LOG=debug
+    volumes:
+      - ./volumes/rmq0-data:/var/lib/rabbitmq/mnesia
+      - ./volumes/rmq0-log:/var/log/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  otus-rmq1:
+    build: rabbit
+    container_name: "otus-rmq1"
+    image: otus-rabbit
+    restart: on-failure
+    hostname: rmq1
+    networks:
+      otus-network:
+        aliases:
+          - rmq1.local
+    environment:
+      - LOG=debug
+    volumes:
+      - ./volumes/rmq1-data:/var/lib/rabbitmq/mnesia
+      - ./volumes/rmq1-log:/var/log/rabbitmq
+    depends_on:
+      - otus-rmq0
+
+  otus-rmq2:
+    build: rabbit
+    container_name: "otus-rmq2"
+    image: otus-rabbit
+    restart: on-failure
+    hostname: rmq2
+    networks:
+      otus-network:
+        aliases:
+          - rmq2.local
+    environment:
+      - LOG=debug
+    volumes:
+      - ./volumes/rmq2-data:/var/lib/rabbitmq/mnesia
+      - ./volumes/rmq2-log:/var/log/rabbitmq
+    depends_on:
+      - otus-rmq0
+
+  otus-tarantool:
+    image: tarantool/tarantool:2.11
+    container_name: otus-tarantool
+    restart: unless-stopped
+    environment:
+      TARANTOOL_USER_NAME: "user"
+      TARANTOOL_USER_PASSWORD: "password"
+    ports:
+      - 3301:3301
+    volumes:
+      - ./volumes/tarantool/data:/var/lib/tarantool
+      - ./tarantool:/usr/local/share/tarantool/init
+    command: tarantool /usr/local/share/tarantool/init/init.lua
+    networks:
+      - otus-network
+
+  pgbouncer:
+    image: edoburu/pgbouncer
+    container_name: pgbouncer
+    hostname: pgbouncer
+    environment:
+      - DB_USER=dbuser
+      - DB_PASSWORD=dbpassword
+      - DB_HOST=citus_master
+      - DB_NAME=otusdb
+      - POOL_MODE=transaction
+      - ADMIN_USERS=postgres,dbuser
+      #  - PGBOUNCER_AUTH_USER=dbuser
+      #  - PGBOUNCER_MAX_CLIENT_CONN=1000
+      #  - PGBOUNCER_POOL_MODE=session
+      #  - PGBOUNCER_PORT=6432
+      #  - PGBOUNCER_SET_DATABASE_PASSWORD=dbuser
+      #  - PGBOUNCER_SET_DATABASE_USER=dbuser
+      #  - PGBOUNCER_STATS_USERS=dbuser
+      #  - POSTGRESQL_DATABASE=otusdb
+      #  - POSTGRESQL_HOST=192.168.176.2
+      #  - POSTGRESQL_PASSWORD=dbpassword
+      #  - POSTGRESQL_USERNAME=dbuser
+      #  - POSTGRESQL_PORT=5432
+    ports:
+      - "5432:5432"
+    # volumes:
+    #   - ./pgbouncer/:/bitnami/pgbouncer/conf/
+    networks:
+      - otus-network
+    depends_on:
+      - citus-master
+
+  citus-master:
+    container_name: citus_master
+    hostname: citus_master
+    image: "citusdata/citus:12.0.0"
+    labels: ["com.citusdata.role=Master"]
+    environment:
+      CITUS_HOST: "citus_master"
+      POSTGRES_DB: "otusdb"
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "dbpassword"
+      PGUSER: "dbuser"
+      PGPASSWORD: "dbpassword"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    command: ["postgres", "-c", "max_connections=10000", "-c", "shared_buffers=8GB"]
+    # ports:
+    #   - "5432:5432"
+    volumes:
+      - ./volumes/postgres-data-master:/var/lib/postgresql/data
+    networks:
+      - otus-network
+
+  citus-worker-1:
+    container_name: citus_worker-1
+    image: "citusdata/citus:12.0.0"
+    labels: ["com.citusdata.role=Worker"]
+    depends_on:
+      - citus-manager
+    environment:
+      CITUS_HOST: "citus_master"
+      POSTGRES_DB: "otusdb"
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "dbpassword"
+      PGUSER: "dbuser"
+      PGPASSWORD: "dbpassword"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    command: ["postgres", "-c", "wal_level=logical"]
+    volumes:
+      - ./volumes/healthcheck-volume:/healthcheck
+      - ./volumes/postgres-data-worker-1:/var/lib/postgresql/data
+    networks:
+      - otus-network
+
+  citus-worker-2:
+    container_name: citus_worker-2
+    image: "citusdata/citus:12.0.0"
+    labels: ["com.citusdata.role=Worker"]
+    depends_on:
+      - citus-manager
+    environment:
+      CITUS_HOST: "citus_master"
+      POSTGRES_DB: "otusdb"
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "dbpassword"
+      PGUSER: "dbuser"
+      PGPASSWORD: "dbpassword"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    command: ["postgres", "-c", "wal_level=logical"]
+    volumes:
+      - ./volumes/healthcheck-volume:/healthcheck
+      - ./volumes/postgres-data-worker-2:/var/lib/postgresql/data
+    networks:
+      - otus-network
+
+  citus-worker-3:
+    container_name: citus_worker-3
+    image: "citusdata/citus:12.0.0"
+    labels: ["com.citusdata.role=Worker"]
+    depends_on:
+      - citus-manager
+    environment:
+      CITUS_HOST: "citus_master"
+      POSTGRES_DB: "otusdb"
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "dbpassword"
+      PGUSER: "dbuser"
+      PGPASSWORD: "dbpassword"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    command: ["postgres", "-c", "wal_level=logical"]
+    volumes:
+      - ./volumes/healthcheck-volume:/healthcheck
+      - ./volumes/postgres-data-worker-3:/var/lib/postgresql/data
+    networks:
+      - otus-network
+
+  citus-worker-4:
+    container_name: citus_worker-4
+    image: "citusdata/citus:12.0.0"
+    labels: ["com.citusdata.role=Worker"]
+    depends_on:
+      - citus-manager
+    environment:
+      CITUS_HOST: "citus_master"
+      POSTGRES_DB: "otusdb"
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "dbpassword"
+      PGUSER: "dbuser"
+      PGPASSWORD: "dbpassword"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    command: ["postgres", "-c", "wal_level=logical"]
+    volumes:
+      - ./volumes/healthcheck-volume:/healthcheck
+      - ./volumes/postgres-data-worker-4:/var/lib/postgresql/data
+    networks:
+      - otus-network
+
+  citus-worker-5:
+    container_name: citus_worker-5
+    image: "citusdata/citus:12.0.0"
+    labels: ["com.citusdata.role=Worker"]
+    depends_on:
+      - citus-manager
+    environment:
+      CITUS_HOST: "citus_master"
+      POSTGRES_DB: "otusdb"
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "dbpassword"
+      PGUSER: "dbuser"
+      PGPASSWORD: "dbpassword"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    command: ["postgres", "-c", "wal_level=logical"]
+    volumes:
+      - ./volumes/healthcheck-volume:/healthcheck
+      - ./volumes/postgres-data-worker-5:/var/lib/postgresql/data
+    networks:
+      - otus-network
+
+  citus-manager:
+    container_name: citus_manager
+    image: "citusdata/membership-manager:0.3.0"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./volumes/healthcheck-volume:/healthcheck
+      - ./volumes/postgres-data-manager:/var/lib/postgresql/data
+    depends_on:
+      - citus-master
+    environment:
+      CITUS_HOST: "citus_master"
+      POSTGRES_DB: "otusdb"
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "dbpassword"
+      PGUSER: "dbuser"
+      PGPASSWORD: "dbpassword"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    networks:
+      - otus-network
+
+  otus-api-1:
+    image: otus-api-image
+    build:
+      context: ./webapi
+      dockerfile: ./Dockerfile.webapi
+    container_name: otus-api-1
+    restart: always
+    environment:
+      # Основные настройки для работы API
+      ServiceName: "Otus1"
+      ASPNETCORE_URLS: "http://+:5001"
+      AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
+      # Строка подключения к базе данных Postgres
+      DatabaseSettings:ConnStr: "Host=pgbouncer;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      # Подключение к tarantool
+      TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
+      TarantoolSettings:Space: "posts"
+      # Rabbit
+      RabbitMqSettings:Uri: "rabbitmq://guest:guest@otus-haproxy:5672"
+      RabbitMqSettings:Consumer: api1
+      # Настройки генерации токена авторизации
+      JWTSettings:Key: "verystrongkeyforauthtoken"
+      JWTSettings:Issuer: otus.social.network
+      JWTSettings:Audience: otus.social.network
+      JWTSettings:DurationInMinutes: "60"
+      # Dialogs GRPC Service
+      DialogServiceHost: "http://otus-dialogs:5147"
+    user: "555:555"
+    ports:
+      - 5001:5001
+    entrypoint: dotnet OtusSocialNetwork.dll
+    networks:
+      - otus-network
+
+  otus-api-2:
+    image: otus-api-image
+    build:
+      context: ./webapi
+      dockerfile: ./Dockerfile.webapi
+    container_name: otus-api-2
+    restart: always
+    environment:
+      # Основные настройки для работы API
+      ServiceName: "Otus2"
+      ASPNETCORE_URLS: "http://+:5002"
+      AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
+      # Строка подключения к базе данных Postgres
+      DatabaseSettings:ConnStr: "Host=pgbouncer;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      # Подключение к tarantool
+      TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
+      TarantoolSettings:Space: "posts"
+      # Rabbit
+      RabbitMqSettings:Uri: "rabbitmq://guest:guest@otus-haproxy:5672"
+      RabbitMqSettings:Consumer: api2
+      # Настройки генерации токена авторизации
+      JWTSettings:Key: "verystrongkeyforauthtoken"
+      JWTSettings:Issuer: otus.social.network
+      JWTSettings:Audience: otus.social.network
+      JWTSettings:DurationInMinutes: "60"
+      # Dialogs Mode Postgres
+      ChatMode: "Postgres"
+      # Dialogs GRPC Service
+      DialogServiceHost: "http://otus-dialogs:5147"
+    user: "555:555"
+    ports:
+      - 5002:5002
+    entrypoint: dotnet OtusSocialNetwork.dll
+    networks:
+      - otus-network
+
+  otus-api-3:
+    image: otus-api-image
+    build:
+      context: ./webapi
+      dockerfile: ./Dockerfile.webapi
+    container_name: otus-api-3
+    restart: always
+    environment:
+      # Основные настройки для работы API
+      ServiceName: "Otus3"
+      ASPNETCORE_URLS: "http://+:5003"
+      AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
+      # Строка подключения к базе данных Postgres
+      DatabaseSettings:ConnStr: "Host=pgbouncer;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      # Подключение к tarantool
+      TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
+      TarantoolSettings:Space: "posts"
+      # Rabbit
+      RabbitMqSettings:Uri: "rabbitmq://guest:guest@otus-haproxy:5672"
+      RabbitMqSettings:Consumer: api3
+      # Настройки генерации токена авторизации
+      JWTSettings:Key: "verystrongkeyforauthtoken"
+      JWTSettings:Issuer: otus.social.network
+      JWTSettings:Audience: otus.social.network
+      JWTSettings:DurationInMinutes: "60"
+      # Dialogs Mode Postgres
+      ChatMode: "Tarantool"
+      # Dialogs GRPC Service
+      DialogServiceHost: "http://otus-dialogs:5147"
+    user: "555:555"
+    ports:
+      - 5003:5003
+    entrypoint: dotnet OtusSocialNetwork.dll
+    networks:
+      - otus-network
+
+  otus-dialogs:
+    image: otus-dialogs-image
+    build:
+      context: ./webapi
+      dockerfile: ./Dockerfile.grpc
+    container_name: otus-dialogs
+    restart: always
+    environment:
+      # Подключение к tarantool
+      TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
+      TarantoolSettings:Space: ""
+    user: "555:555"
+    ports:
+      - 5147:5147
+    entrypoint: dotnet OtusDialogsGrpc.dll
+    networks:
+      - otus-network
+
+  otus-web:
+    image: otus-web-image
+    container_name: otus-web
+    build:
+      context: ./angular
+      dockerfile: ./Dockerfile
+    restart: always
+    ports:
+      - 4200:80
+    networks:
+      - otus-network
+
+networks:
+  otus-network:
+    name: otus-network
+    driver: bridge

@@ -8,7 +8,6 @@ using OtusSocialNetwork.Database;
 using OtusSocialNetwork.DataClasses.Dtos;
 using OtusSocialNetwork.DataClasses.Responses;
 using OtusSocialNetwork.Services;
-using OtusSocialNetwork.Tarantool;
 
 namespace OtusSocialNetwork.Controllers;
 
@@ -19,21 +18,18 @@ public class DialogController : ControllerBase
 {
     private readonly IAuthenticatedUserService _auth;
     private readonly IDatabaseContext _db;
-    private readonly ITarantoolService _tarantool;
     private readonly IConfiguration _config;
     private readonly IDialogsService _dialogs;
     private readonly bool _isPostgres;
 
     public DialogController(IAuthenticatedUserService auth,
         IDatabaseContext db,
-        ITarantoolService tarantool,
         IConfiguration config,
         IDialogsService dialogs
       )
     {
         _auth = auth;
         _db = db;
-        _tarantool = tarantool;
         _config = config;
         _isPostgres = _config["ChatMode"] == "Postgres";
         _dialogs = dialogs;

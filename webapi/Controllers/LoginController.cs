@@ -14,7 +14,6 @@ using OtusSocialNetwork.DataClasses.Notifications;
 using OtusSocialNetwork.DataClasses.Requests;
 using OtusSocialNetwork.DataClasses.Responses;
 using OtusSocialNetwork.Services;
-using OtusSocialNetwork.Tarantool;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -28,18 +27,16 @@ public class LoginController : ControllerBase
 {
     private readonly IDatabaseContext _db;
     private readonly IPasswordService _pass;
-    private readonly ITarantoolService _tarantool;
     private readonly IMapper _mapper;
     private readonly JWTSettings _jwtSettings;
     private readonly IPublishEndpoint _rabbit;
 
     public LoginController(IDatabaseContext db,  IPasswordService pass, IOptions<JWTSettings> jwtSettings,
-        ITarantoolService tarantool, IMapper mapper, IPublishEndpoint rabbit)
+        IMapper mapper, IPublishEndpoint rabbit)
     {
         _db = db;
         _pass = pass;
         _jwtSettings = jwtSettings.Value;
-        _tarantool = tarantool;
         _mapper = mapper;
         _rabbit = rabbit;
     }

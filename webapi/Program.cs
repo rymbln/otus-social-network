@@ -1,29 +1,15 @@
-using MassTransit;
-using MassTransit.RabbitMqTransport.Configuration;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
-using OtusClasses.Settings;
-
-using OtusSocialNetwork.Consumers;
 using OtusSocialNetwork.Database;
-using OtusSocialNetwork.DataClasses.Dtos;
 using OtusSocialNetwork.DataClasses.Internals;
-using OtusSocialNetwork.DataClasses.Notifications;
-using OtusSocialNetwork.Filters;
 using OtusSocialNetwork.Middlewares;
-using OtusSocialNetwork.Rabbitmq;
 using OtusSocialNetwork.Services;
 using OtusSocialNetwork.SignalHub;
-using OtusSocialNetwork.Tarantool;
 
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace OtusSocialNetwork;
 
@@ -36,9 +22,9 @@ public class Program
 
         // Add services to the container.
         builder.Services.Configure<DatabaseSettings>(config.GetSection("DatabaseSettings"));
-        builder.Services.Configure<TarantoolSettings>(config.GetSection("TarantoolSettings"));
+        //builder.Services.Configure<TarantoolSettings>(config.GetSection("TarantoolSettings"));
         builder.Services.AddScoped<IDatabaseContext, DatabaseContext>();
-        builder.Services.AddSingleton<ITarantoolService, TarantoolService>();
+        //builder.Services.AddSingleton<ITarantoolService, TarantoolService>();
         builder.Services.AddSingleton<IPasswordService, PasswordService>();
         builder.Services.AddScoped<IAuthenticatedUserService, AuthenticatedUserService>();
         builder.Services.AddScoped<IDialogsService, DialogsService>();
@@ -174,49 +160,49 @@ public class Program
                 });
         });
 
-        var rabbitMqSettings = builder.Configuration.GetSection(nameof(RabbitMqSettings)).Get<RabbitMqSettings>();
-        builder.Services.AddMassTransit(mt =>
-        {
-            //mt.SetKebabCaseEndpointNameFormatter();
-            mt.AddConsumers(Assembly.GetExecutingAssembly());
+        //var rabbitMqSettings = builder.Configuration.GetSection(nameof(RabbitMqSettings)).Get<RabbitMqSettings>();
+        //builder.Services.AddMassTransit(mt =>
+        //{
+        //    //mt.SetKebabCaseEndpointNameFormatter();
+        //    mt.AddConsumers(Assembly.GetExecutingAssembly());
 
-            mt.UsingRabbitMq((context, busFactoryConfigurator) =>
-            {
-                busFactoryConfigurator.Host(rabbitMqSettings.Uri);
-                //busFactoryConfigurator.ConfigureEndpoints(context);
+        //    mt.UsingRabbitMq((context, busFactoryConfigurator) =>
+        //    {
+        //        busFactoryConfigurator.Host(rabbitMqSettings.Uri);
+        //        //busFactoryConfigurator.ConfigureEndpoints(context);
 
-                busFactoryConfigurator.ReceiveEndpoint(nameof(NotificationFeedAddConsumer), e =>
-                {
-                    e.ConfigureConsumeTopology = false;
-                    e.ConfigureConsumer(context, typeof(NotificationFeedAddConsumer));
-                    e.Bind<INotificationFeedAdd>();
-                });
-                busFactoryConfigurator.ReceiveEndpoint(nameof(NotificationFeedUpdateConsumer), e =>
-                {
-                    e.ConfigureConsumeTopology = false;
-                    e.ConfigureConsumer(context, typeof(NotificationFeedUpdateConsumer));
-                    e.Bind<INotificationFeedUpdate>();
-                });
-                busFactoryConfigurator.ReceiveEndpoint(nameof(NotificationFeedReloadConsumer), e =>
-                {
-                    e.ConfigureConsumeTopology = false;
-                    e.ConfigureConsumer(context, typeof(NotificationFeedReloadConsumer));
-                    e.Bind<INotificationFeedReload>();
-                });
-                busFactoryConfigurator.ReceiveEndpoint(nameof(NotificationFeedDeleteConsumer), e =>
-                {
-                    e.ConfigureConsumeTopology = false;
-                    e.ConfigureConsumer(context, typeof(NotificationFeedDeleteConsumer));
-                    e.Bind<INotificationFeedDelete>();
-                });
-                busFactoryConfigurator.ReceiveEndpoint($"{nameof(PushFeedUpdateConsumer)}_{rabbitMqSettings.Consumer}", e =>
-                {
-                    e.ConfigureConsumeTopology = false;
-                    e.ConfigureConsumer(context, typeof(PushFeedUpdateConsumer));
-                    e.Bind<IPushFeedUpdate>();
-                });
-            });
-        });
+        //        busFactoryConfigurator.ReceiveEndpoint(nameof(NotificationFeedAddConsumer), e =>
+        //        {
+        //            e.ConfigureConsumeTopology = false;
+        //            e.ConfigureConsumer(context, typeof(NotificationFeedAddConsumer));
+        //            e.Bind<INotificationFeedAdd>();
+        //        });
+        //        busFactoryConfigurator.ReceiveEndpoint(nameof(NotificationFeedUpdateConsumer), e =>
+        //        {
+        //            e.ConfigureConsumeTopology = false;
+        //            e.ConfigureConsumer(context, typeof(NotificationFeedUpdateConsumer));
+        //            e.Bind<INotificationFeedUpdate>();
+        //        });
+        //        busFactoryConfigurator.ReceiveEndpoint(nameof(NotificationFeedReloadConsumer), e =>
+        //        {
+        //            e.ConfigureConsumeTopology = false;
+        //            e.ConfigureConsumer(context, typeof(NotificationFeedReloadConsumer));
+        //            e.Bind<INotificationFeedReload>();
+        //        });
+        //        busFactoryConfigurator.ReceiveEndpoint(nameof(NotificationFeedDeleteConsumer), e =>
+        //        {
+        //            e.ConfigureConsumeTopology = false;
+        //            e.ConfigureConsumer(context, typeof(NotificationFeedDeleteConsumer));
+        //            e.Bind<INotificationFeedDelete>();
+        //        });
+        //        busFactoryConfigurator.ReceiveEndpoint($"{nameof(PushFeedUpdateConsumer)}_{rabbitMqSettings.Consumer}", e =>
+        //        {
+        //            e.ConfigureConsumeTopology = false;
+        //            e.ConfigureConsumer(context, typeof(PushFeedUpdateConsumer));
+        //            e.Bind<IPushFeedUpdate>();
+        //        });
+        //    });
+        //});
 
 
         var app = builder.Build();

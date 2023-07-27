@@ -50,7 +50,6 @@
   <ItemGroup>
     <Folder Include="Postgres\" />
     <Folder Include="Specs\" />
-    <Folder Include="Tarantool\" />
     <Folder Include="DataClasses\Notifications\" />
   </ItemGroup>
 
