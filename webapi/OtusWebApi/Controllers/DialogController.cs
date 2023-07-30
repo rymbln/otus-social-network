@@ -1,14 +1,16 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using OtusClasses.DataClasses.Dtos;
+using OtusClasses.Sagas.Events;
 
 using OtusSocialNetwork.Database;
-using OtusSocialNetwork.DataClasses.Dtos;
-using OtusSocialNetwork.DataClasses.Responses;
 using OtusSocialNetwork.Services;
 using OtusSocialNetwork.Tarantool;
+
+using Rebus.Bus;
 
 namespace OtusSocialNetwork.Controllers;
 
@@ -22,17 +24,20 @@ public class DialogController : ControllerBase
     private readonly ITarantoolService _tarantool;
     private readonly IConfiguration _config;
     private readonly IDialogsService _dialogs;
+    private readonly IBus _bus;
     private readonly bool _isPostgres;
 
     public DialogController(IAuthenticatedUserService auth,
         IDatabaseContext db,
         ITarantoolService tarantool,
         IConfiguration config,
-        IDialogsService dialogs
+        IDialogsService dialogs,
+        IBus bus
       )
     {
         _auth = auth;
         _db = db;
+        _bus = bus;
         _tarantool = tarantool;
         _config = config;
         _isPostgres = _config["ChatMode"] == "Postgres";
@@ -43,8 +48,12 @@ public class DialogController : ControllerBase
     [HttpPost("{userId}/send")]
     public async Task<IActionResult> Send(Guid userId, DialogMessageForm form)
     {
-        var res = await _dialogs.SendMessage(_auth.UserId, userId.ToString(), form.Text);
-        return Ok(res);
+        var data = new DialogMessageDTO(Guid.NewGuid().ToString(), _auth.UserId, userId.ToString(), form.Text, DateTime.UtcNow);
+        await _bus.Send(new MessageCreatedEvent(data.Id, data));
+        return Ok();
+        // --
+        //var res = await _dialogs.SendMessage(_auth.UserId, userId.ToString(), form.Text);
+        //return Ok(res);
         // ---
         //if (_isPostgres)
         //{

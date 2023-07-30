@@ -16,11 +16,11 @@ namespace OtusDialogsGrpc.Services;
 public class DialogsService: Dialogs.DialogsBase
 {
     private readonly ILogger<DialogsService> _logger;
-    private readonly ITarantoolDialogsService _tarantool;
+    private readonly ITarantoolService _tarantool;
     private readonly IMapper _mapper;
     public DialogsService(
         ILogger<DialogsService> logger,
-        ITarantoolDialogsService tarantool,
+        ITarantoolService tarantool,
         IMapper mapper)
     {
         _logger = logger;

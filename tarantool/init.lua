@@ -221,6 +221,7 @@ local function init()
         {name = 'id', type = 'string'},
         {name = 'fromid', type = 'string'},
         {name = 'toid', type = 'string'},
+        {name = 'isnew', type = 'boolean'},
         {name = 'messagetext', type = 'string'},
         {name = 'timestamp', type = 'string'}
     }
@@ -237,9 +238,81 @@ local function init()
     log.info("dialog_messages_primary:created")
      -- Create an index on the userIds field
     dialog_messages:create_index('dialog_messages_secondary', {if_not_exists = true, unique = false, parts = {field_map.fromid, field_map.toid}})
+    dialog_messages:create_index('dialog_messages_unread', {if_not_exists = true, unique = false, parts = {field_map.fromid, field_map.toid, field_map.isnew}})
     log.info("dialog_messages_secondary:created")
 
+    ---------
+    --- COUNTERS
+    ---------
+    counters = box.schema.create_space('counters', { if_not_exists = true })
+    log.info("counters:created")
+    -- Define the format of the tuple
+    local format = {
+        {name = 'id', type = 'string'},
+        {name = 'fromid', type = 'string'},
+        {name = 'toid', type = 'string'},
+        {name = 'unread', type = 'number'}
+    }
+    -- Create the field map
+    local field_map = {}
+    for i, field in ipairs(format) do
+        field_map[field.name] = i
+    end
+    -- Create indexes
+    counters:create_index('counters_primary', { if_not_exists = true, unique = true, type = 'tree', parts = {field_map.id} })
+    log.info("counters_primary:created")
+     -- Create an index on the userIds field
+    counters:create_index('counters_secondary', {if_not_exists = true, unique = false, parts = {field_map.fromid, field_map.toid}})
+    -- Create an index on the userIds field
+    counters:create_index('counters_from_secondary', {if_not_exists = true, unique = false, parts = {field_map.toid}})
+    log.info("counters_secondary:created")
 
+end
+
+function set_counters(fromid, toid, val)
+    log.info("set_counters: " .. fromid .. " - " .. toid .. " - " .. val)
+    local space = box.space.counters
+    local index = space.index.counters_secondary
+
+    if index:count({fromid, toid}) > 0 then
+        local data = index:select({fromid, toid})
+        -- Update value
+        for idx, item in ipairs(data) do
+            space:update(item[1], {{'=', 4, val}})
+        end
+    else
+        -- Create value
+        space:insert{uuid.str(), fromid, toid, val}
+    end
+    data = index:select({fromid, toid})
+    log.info("set_counters:")
+    log.info(data)
+    return data
+end
+
+function get_counters(fromid, toid)
+    local space = box.space.counters
+    local index = space.index.counters_secondary
+    local data = {}
+    local id = 0
+
+    local data1 = index:select({fromid, toid})
+    if data1 ~= nil then
+        for idx, item in ipairs(data1) do
+            id = id + 1
+            data[id] = item
+        end
+    end
+    return data
+end
+
+function get_counters_all(toid)
+    local space = box.space.counters
+    local index = space.index.counters_from_secondary
+    local data = index:select{toid}
+    log.info("get_counters_all:")
+    log.info(data)
+    return data
 end
 
 function delete_usersockets_by_user(userid)
@@ -422,7 +495,35 @@ function create_dialog_message(id, fromid, toid, messagetext, timestamp)
     local space = box.space.dialog_messages
 
     -- Insert a new tuple with the provided values
-    space:insert{id, fromid, toid, messagetext, timestamp}
+    space:insert{id, fromid, toid, true, messagetext, timestamp}
+
+    set_dialog_message_unread_count(fromid, toid)
+end
+
+function set_dialog_message_unread_count(fromid, toid)
+    local space = box.space.dialog_messages
+    local index = space.index.dialog_messages_unread
+    local data = index:count({fromid, toid, true})
+    log.info("set_dialog_message_unread_count:")
+    log.info(data)
+    if data ~= nil then
+        set_counters(fromid, toid, data)
+    end
+end
+
+function read_dialog_message(id)
+    -- Get the space object
+    local space = box.space.dialog_messages
+    local index = space.index.dialog_messages_primary
+
+    -- Insert a new tuple with the provided values
+    local data = index:select({id})
+    if data ~= nil then
+        -- Update value
+        for idx, item in ipairs(data) do
+            space:update(v[1], {{'+', 5, false}})
+        end
+    end
 end
 
 function delete_message(id)
@@ -485,50 +586,50 @@ function get_chatsockets(userid)
 end
 
 function data()
-    local chats = box.space.chats
-    local chats_and_users = box.space.chats_and_users
-    local messages = box.space.messages
-    local dialog_messages = box.space.dialog_messages
+    -- local chats = box.space.chats
+    -- local chats_and_users = box.space.chats_and_users
+    -- local messages = box.space.messages
+    -- local dialog_messages = box.space.dialog_messages
 
-    -- Define the values for the new chat item
-    local id = "b65ec3ae-cc92-4ad2-a6a6-1340503a648e"
-    local name = "Chat Name"
-    local user_ids = { "b2428a06-ee2a-40b8-94f4-69cd3c85a2e0", "3cc744e5-ec95-4926-9a64-aba219819337" }
+    -- -- Define the values for the new chat item
+    -- local id = "b65ec3ae-cc92-4ad2-a6a6-1340503a648e"
+    -- local name = "Chat Name"
+    -- local user_ids = { "b2428a06-ee2a-40b8-94f4-69cd3c85a2e0", "3cc744e5-ec95-4926-9a64-aba219819337" }
 
-    if chats:len() == 0 then
-        -- Insert the new chat item
-        chat_id_str = "b65ec3ae-cc92-4ad2-a6a6-1340503a648e"
-        user_ids_str = {"b2428a06-ee2a-40b8-94f4-69cd3c85a2e0", "3cc744e5-ec95-4926-9a64-aba219819337"}
-        chats:insert({ id, name })
-        -- uuid.str()
-        chats_and_users:insert(
-            { "1", chat_id_str, user_ids_str[1]})
-        chats_and_users:insert(
-            { "2", chat_id_str, user_ids_str[2] }
-        )
-        log.info("chat created")
-    end
-    if messages:len() == 0 then
-        -- insert messages
-        for i = 1,1000,1 do
-            for j = 1,2,1 do
-                messages:insert({uuid.str(), chat_id_str, user_ids_str[j],
-                'some interesting message number ' .. i .. ' from ' .. user_ids_str[j], os.date("!%Y-%m-%dT%H:%M:%SZ") })
-            end
-        end
-        log.info("messages created")
-    end
+    -- if chats:len() == 0 then
+    --     -- Insert the new chat item
+    --     chat_id_str = "b65ec3ae-cc92-4ad2-a6a6-1340503a648e"
+    --     user_ids_str = {"b2428a06-ee2a-40b8-94f4-69cd3c85a2e0", "3cc744e5-ec95-4926-9a64-aba219819337"}
+    --     chats:insert({ id, name })
+    --     -- uuid.str()
+    --     chats_and_users:insert(
+    --         { "1", chat_id_str, user_ids_str[1]})
+    --     chats_and_users:insert(
+    --         { "2", chat_id_str, user_ids_str[2] }
+    --     )
+    --     log.info("chat created")
+    -- end
+    -- if messages:len() == 0 then
+    --     -- insert messages
+    --     for i = 1,1000,1 do
+    --         for j = 1,2,1 do
+    --             messages:insert({uuid.str(), chat_id_str, user_ids_str[j],
+    --             'some interesting message number ' .. i .. ' from ' .. user_ids_str[j], os.date("!%Y-%m-%dT%H:%M:%SZ") })
+    --         end
+    --     end
+    --     log.info("messages created")
+    -- end
 
-    if dialog_messages:len() == 0 then
-        -- insert messages
-        for i = 1,1000,1 do
-            dialog_messages:insert({uuid.str(), user_ids_str[1], user_ids_str[2],
-            'some interesting message number ' .. i .. ' from ' .. user_ids_str[1], os.date("!%Y-%m-%dT%H:%M:%SZ") })
-            dialog_messages:insert({uuid.str(), user_ids_str[2], user_ids_str[1],
-            'some interesting message number ' .. i .. ' from ' .. user_ids_str[1], os.date("!%Y-%m-%dT%H:%M:%SZ") })
-        end
-        log.info("dialog_messages created")
-    end
+    -- if dialog_messages:len() == 0 then
+    --     -- insert messages
+    --     for i = 1,1000,1 do
+    --         dialog_messages:insert({uuid.str(), user_ids_str[1], user_ids_str[2],
+    --         'some interesting message number ' .. i .. ' from ' .. user_ids_str[1], os.date("!%Y-%m-%dT%H:%M:%SZ") })
+    --         dialog_messages:insert({uuid.str(), user_ids_str[2], user_ids_str[1],
+    --         'some interesting message number ' .. i .. ' from ' .. user_ids_str[1], os.date("!%Y-%m-%dT%H:%M:%SZ") })
+    --     end
+    --     log.info("dialog_messages created")
+    -- end
 
     -- local status, result = pcall(function()
     --     get_chats_for_user("3cc744e5-ec95-4926-9a64-aba219819337")

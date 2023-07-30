@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
+using OtusClasses.DataClasses;
+
 using OtusSocialNetwork.Database;
 using OtusSocialNetwork.Services;
 using OtusSocialNetwork.Tarantool;
@@ -74,4 +76,14 @@ public class MessageHubModel
     public string UserId { get; set; }
     public string ChatName { get; set; }
     public string Message { get; set; }
+}
+
+public class CountersHubModel
+{
+    public CountersHubModel(List<ChatCounterDto> chats)
+    {
+        Chats = chats ?? throw new ArgumentNullException(nameof(chats));
+    }
+
+    public List<ChatCounterDto> Chats { get; set; }
 }

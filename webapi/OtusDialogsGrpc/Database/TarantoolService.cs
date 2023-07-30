@@ -10,12 +10,12 @@ using ProGaudi.Tarantool.Client.Model;
 
 namespace OtusDialogsGrpc.Database;
 
-public class TarantoolDialogsService : ITarantoolDialogsService, IDisposable
+public class TarantoolService : ITarantoolService, IDisposable
 {
     private readonly string connStr;
     private Box box;
 
-    public TarantoolDialogsService(IOptions<TarantoolSettings> settings)
+    public TarantoolService(IOptions<TarantoolSettings> settings)
     {
         connStr = settings.Value.ConnStr;
         Init().Wait();

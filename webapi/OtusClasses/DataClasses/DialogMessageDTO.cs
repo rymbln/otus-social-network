@@ -2,6 +2,10 @@
 {
     public class DialogMessageDTO
     {
+        public DialogMessageDTO()
+        {
+        }
+
         public DialogMessageDTO(string from, string to, string text)
         {
             From = from ?? throw new ArgumentNullException(nameof(from));

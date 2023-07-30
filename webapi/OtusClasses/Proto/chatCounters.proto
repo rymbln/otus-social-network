@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option csharp_namespace = "OtusClasses";
+
+import "google/protobuf/timestamp.proto";
+
+package chatCounters;
+
+service ChatCounters { 
+	rpc SetCounters(ChatCounterSetRequest) returns (ChatCountersReply);
+	rpc GetCounters(ChatCountersRequest) returns (ChatCountersReply);
+}
+
+message ChatCounterSetRequest { 
+	string from = 1;
+	string to = 2;
+	int32 counter = 3;
+}
+
+message ChatCountersRequest { 
+	string from = 1;
+}
+
+message ChatCountersReply {
+	repeated ChatCounterReply items = 1;
+}
+
+message ChatCounterReply { 
+	string from = 1;
+	string to = 2;
+	int32 counter = 3;
+}

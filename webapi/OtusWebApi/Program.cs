@@ -1,11 +1,13 @@
 using MassTransit;
-using MassTransit.RabbitMqTransport.Configuration;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+using OtusClasses;
+using OtusClasses.Sagas;
+using OtusClasses.Sagas.Events;
 using OtusClasses.Settings;
 
 using OtusSocialNetwork.Consumers;
@@ -15,10 +17,12 @@ using OtusSocialNetwork.DataClasses.Internals;
 using OtusSocialNetwork.DataClasses.Notifications;
 using OtusSocialNetwork.Filters;
 using OtusSocialNetwork.Middlewares;
-using OtusSocialNetwork.Rabbitmq;
 using OtusSocialNetwork.Services;
 using OtusSocialNetwork.SignalHub;
 using OtusSocialNetwork.Tarantool;
+
+using Rebus.Config;
+using Rebus.Routing.TypeBased;
 
 using System.Reflection;
 using System.Text;
@@ -33,6 +37,8 @@ public class Program
     {
         var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").AddEnvironmentVariables().Build();
         var builder = WebApplication.CreateBuilder(args);
+        var rabbitMqSettings = builder.Configuration.GetSection(nameof(RabbitMqSettings)).Get<RabbitMqSettings>();
+        var databaseSettings = builder.Configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
 
         // Add services to the container.
         builder.Services.Configure<DatabaseSettings>(config.GetSection("DatabaseSettings"));
@@ -42,6 +48,21 @@ public class Program
         builder.Services.AddSingleton<IPasswordService, PasswordService>();
         builder.Services.AddScoped<IAuthenticatedUserService, AuthenticatedUserService>();
         builder.Services.AddScoped<IDialogsService, DialogsService>();
+
+        //builder.Services.AddRebus(rebus =>
+        //    rebus
+        //    .Routing(r => r.TypeBased().MapAssemblyOf<SendMessageSaga>(rabbitMqSettings.SagaQueue))
+        //    .Transport(t => t.UseRabbitMq(rabbitMqSettings.SagaUri, rabbitMqSettings.SagaQueue))
+        //    .Sagas(s => s.StoreInPostgres(databaseSettings.ConnStr, "sagas", "saga_indexes")),
+        //     onCreated: async bus =>
+        //     {
+        //         await bus.Subscribe<MessageCreatedEvent>();
+        //     }
+        //);
+        builder.Services.AddSagas(config);
+        builder.Services.AutoRegisterHandlersFromAssemblyOf<Program>();
+        //builder.Services.AutoRegisterHandlersFromAssemblyOf<SendMessageSaga>();
+
         // TODO: Delete
         builder.Services.AddSingleton<TimerManager>();
         builder.Services.AddHttpContextAccessor();
@@ -95,13 +116,13 @@ public class Program
                 };
                 o.Events = new JwtBearerEvents()
                 {
-                    OnAuthenticationFailed = c =>
-                    {
-                        c.NoResult();
-                        c.Response.StatusCode = 401;
-                        c.Response.ContentType = "text/plain";
-                        return c.Response.WriteAsync(c.Exception.ToString());
-                    },
+                    //OnAuthenticationFailed = c =>
+                    //{
+                    //    c.NoResult();
+                    //    //c.Response.StatusCode = 401;
+                    //    c.Response.ContentType = "text/plain";
+                    //    return c.Response.WriteAsync(c.Exception.ToString());
+                    //},
                     // OnChallenge = context =>
                     // {
                     //     context.HandleResponse();
@@ -126,7 +147,7 @@ public class Program
                     },
                     OnForbidden = context =>
                     {
-                        context.Response.StatusCode = 403;
+                       // context.Response.StatusCode = 403;
                         context.Response.ContentType = "application/json";
                         var result = JsonSerializer.Serialize("You are not authorized to access this resource");
                         return context.Response.WriteAsync(result);
@@ -174,7 +195,7 @@ public class Program
                 });
         });
 
-        var rabbitMqSettings = builder.Configuration.GetSection(nameof(RabbitMqSettings)).Get<RabbitMqSettings>();
+
         builder.Services.AddMassTransit(mt =>
         {
             //mt.SetKebabCaseEndpointNameFormatter();

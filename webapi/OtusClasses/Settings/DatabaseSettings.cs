@@ -1,4 +1,4 @@
-﻿namespace OtusSocialNetwork.Database;
+﻿namespace OtusClasses.Settings;
 
 public class DatabaseSettings
 {

@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33312.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OtusSocialNetwork", "OtusSocialNetwork.csproj", "{81ED4A58-F065-4A03-85D1-51D337C3D967}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OtusClasses", "OtusClasses\OtusClasses.csproj", "{A80DC966-56BE-405D-8A5A-7BA804AB6C5B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OtusDialogsGrpc", "OtusDialogsGrpc\OtusDialogsGrpc.csproj", "{06283E25-8536-452F-9CFD-976C5F4ACAB3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OtusSocialNetwork", "OtusWebApi\OtusSocialNetwork.csproj", "{55877395-80B4-461D-85F8-0E44243BFAA6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OtusChatCounters", "OtusChatCounters\OtusChatCounters.csproj", "{31C2328B-3BE4-4566-9B65-A412AC25AFD8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,10 +17,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{81ED4A58-F065-4A03-85D1-51D337C3D967}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{81ED4A58-F065-4A03-85D1-51D337C3D967}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{81ED4A58-F065-4A03-85D1-51D337C3D967}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{81ED4A58-F065-4A03-85D1-51D337C3D967}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A80DC966-56BE-405D-8A5A-7BA804AB6C5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A80DC966-56BE-405D-8A5A-7BA804AB6C5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A80DC966-56BE-405D-8A5A-7BA804AB6C5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -27,6 +25,14 @@ Global
 		{06283E25-8536-452F-9CFD-976C5F4ACAB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06283E25-8536-452F-9CFD-976C5F4ACAB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{06283E25-8536-452F-9CFD-976C5F4ACAB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55877395-80B4-461D-85F8-0E44243BFAA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55877395-80B4-461D-85F8-0E44243BFAA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55877395-80B4-461D-85F8-0E44243BFAA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55877395-80B4-461D-85F8-0E44243BFAA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31C2328B-3BE4-4566-9B65-A412AC25AFD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31C2328B-3BE4-4566-9B65-A412AC25AFD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31C2328B-3BE4-4566-9B65-A412AC25AFD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31C2328B-3BE4-4566-9B65-A412AC25AFD8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

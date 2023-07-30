@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Npgsql;
 
 using OtusClasses.DataClasses.Dtos;
+using OtusClasses.Settings;
 
 using OtusSocialNetwork.Database.Entities;
 using OtusSocialNetwork.DataClasses.Dtos;
@@ -177,7 +178,7 @@ public class DatabaseContext : IDatabaseContext, IDisposable
     }
     #endregion
 
-    #region Posts
+     #region Posts
     public async Task<(bool isSuccess, string msg)> CreatePost(string text, string userId)
     {
         await using var con = await db.OpenConnectionAsync();
@@ -555,6 +556,29 @@ public class DatabaseContext : IDatabaseContext, IDisposable
     #endregion
 
     #region Dialog
+    public async Task<(bool isSuccess, string msg)> SendDialogMessage(DialogMessageDTO obj)
+    {
+        await using var con = await db.OpenConnectionAsync();
+        await using var cmd = new NpgsqlCommand("""
+            INSERT INTO public.messages
+            (id, from_user_id, to_user_id, message_text, "timestamp")
+            VALUES(@id, @fromId, @toId, @message, @timestamp);
+            
+            """, con)
+        {
+            Parameters =
+                {
+                    new("id", obj.Id),
+                    new("fromId", obj.From),
+                    new("toId", obj.To),
+                    new("message", obj.Text),
+                    new("timestamp", obj.TimeStamp)
+                }
+        };
+        await cmd.ExecuteNonQueryAsync();
+
+        return (true, "OK");
+    }
     public async Task<(bool isSuccess, string msg)> SendDialogMessage(string fromId, string toId, string message)
     {
         await using var con = await db.OpenConnectionAsync();
