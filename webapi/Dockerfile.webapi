@@ -7,10 +7,11 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["OtusSocialNetwork.csproj", "."]
-RUN dotnet restore "./OtusSocialNetwork.csproj"
+COPY ["OtusWebApi/OtusSocialNetwork.csproj", "OtusWebApi/"]
+COPY ["OtusClasses/OtusClasses.csproj", "OtusClasses/"]
+RUN dotnet restore "OtusWebApi/OtusSocialNetwork.csproj"
 COPY . .
-WORKDIR "/src/."
+WORKDIR "/src/OtusWebApi"
 RUN dotnet build "OtusSocialNetwork.csproj" -c Release -o /app/build
 
 FROM build AS publish

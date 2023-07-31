@@ -539,6 +539,19 @@ function delete_message(id)
     end
 end
 
+function delete_dialog_message(id)
+    log.info("delete_message:"..id)
+    -- Get the space object
+    local space = box.space.dialog_messages
+    local index = space.index.dialog_messages_primary
+    -- Find the tuple with the specified ID and delete it
+    local result =  index:select(id)
+    for _,tuple in pairs(result) do
+        log.info(tuple)
+        space:delete(tuple[1])
+    end
+end
+
 function delete_messages_by_chatid(chatid)
     -- Get the space and index objects
     local space = box.space.messages

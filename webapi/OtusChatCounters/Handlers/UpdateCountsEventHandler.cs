@@ -1,13 +1,16 @@
 ﻿using OtusChatCounters.Database;
 
+using OtusClasses.DataClasses;
 using OtusClasses.Sagas.Events;
 
 using Rebus.Bus;
 using Rebus.Handlers;
 
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 namespace OtusChatCounters.Handlers;
 
-public class UpdateCountsEventHandler: IHandleMessages<UpdateCountsEvent>
+public class UpdateCountsEventHandler: IHandleMessages<UpdateCountersEvent>
 {
     private readonly ILogger<UpdateCountsEventHandler> _logger;
     private readonly IBus _bus;
@@ -20,11 +23,17 @@ public class UpdateCountsEventHandler: IHandleMessages<UpdateCountsEvent>
         _tarantool = tarantool ?? throw new ArgumentNullException(nameof(tarantool));
     }
 
-    public async Task Handle(UpdateCountsEvent message)
+    public async Task Handle(UpdateCountersEvent message)
     {
-        _logger.LogInformation("UpdateCountsEventHandler: {@MessageId}", message.MessageId);
-        var data = await _tarantool.SetUnreadsCount(message.Message.From, message.Message.To);
-        await _bus.Reply(new CountsUpdatedEvent(message.MessageId, data, message.Message, true));
+        try
+        {
+            _logger.LogInformation("UpdateCountsEventHandler: {@MessageId}", message.MessageId);
+            var data = await _tarantool.SetUnreadsCount(message.Message.From, message.Message.To);
+            await _bus.Reply(new CountersUpdatedEvent(message.MessageId, data, message.Message, true));
+        } catch (Exception ex)
+        {
+            await _bus.Reply(new CountersUpdatedEvent(message.MessageId, new List<ChatCounterDto>(), message.Message, false));
+        }
     }
 
 }

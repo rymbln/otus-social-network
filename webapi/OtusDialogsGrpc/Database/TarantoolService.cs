@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Google.Protobuf.WellKnownTypes;
+
+using Microsoft.Extensions.Options;
 
 using OtusClasses.DataClasses.Dtos;
 using OtusClasses.Settings;
@@ -7,6 +9,8 @@ using OtusDialogsGrpc.Database.Interfaces;
 
 using ProGaudi.Tarantool.Client;
 using ProGaudi.Tarantool.Client.Model;
+
+using Rebus.Messages;
 
 namespace OtusDialogsGrpc.Database;
 
@@ -69,5 +73,10 @@ public class TarantoolService : ITarantoolService, IDisposable
             //return res;
         }
         return res.OrderBy(o => o.TimeStamp).ToList();
+    }
+
+    public async Task DeleteDialogMessage(string id)
+    {
+        await box.Call("delete_dialog_message", TarantoolTuple.Create(id));
     }
 }

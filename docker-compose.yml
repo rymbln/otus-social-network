@@ -289,7 +289,7 @@ services:
       ServiceName: "Otus1"
       ASPNETCORE_URLS: "http://+:5001"
       AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
-      # Строка подключения к базе данных Postgres
+           # Строка подключения к базе данных Postgres
       DatabaseSettings:ConnStr: "Host=pgbouncer;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
       # Подключение к tarantool
       TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
@@ -297,6 +297,11 @@ services:
       # Rabbit
       RabbitMqSettings:Uri: "rabbitmq://guest:guest@otus-haproxy:5672"
       RabbitMqSettings:Consumer: api1
+      RabbitMqSettings:UserName: guest
+      RabbitMqSettings:Password: guest
+      # Saga
+      RabbitMqSettings:SagaUri: "amqp://guest:guest@otus-haproxy:5672"
+      RabbitMqSettings:SagaQueue: counters-queue
       # Настройки генерации токена авторизации
       JWTSettings:Key: "verystrongkeyforauthtoken"
       JWTSettings:Issuer: otus.social.network
@@ -323,7 +328,7 @@ services:
       ServiceName: "Otus2"
       ASPNETCORE_URLS: "http://+:5002"
       AllowedHosts: "*" # Ограничивает хосты, которые могут подключаться к API. По умолчанию - все
-      # Строка подключения к базе данных Postgres
+        # Строка подключения к базе данных Postgres
       DatabaseSettings:ConnStr: "Host=pgbouncer;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
       # Подключение к tarantool
       TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
@@ -331,6 +336,11 @@ services:
       # Rabbit
       RabbitMqSettings:Uri: "rabbitmq://guest:guest@otus-haproxy:5672"
       RabbitMqSettings:Consumer: api2
+      RabbitMqSettings:UserName: guest
+      RabbitMqSettings:Password: guest
+      # Saga
+      RabbitMqSettings:SagaUri: "amqp://guest:guest@otus-haproxy:5672"
+      RabbitMqSettings:SagaQueue: counters-queue
       # Настройки генерации токена авторизации
       JWTSettings:Key: "verystrongkeyforauthtoken"
       JWTSettings:Issuer: otus.social.network
@@ -367,6 +377,11 @@ services:
       # Rabbit
       RabbitMqSettings:Uri: "rabbitmq://guest:guest@otus-haproxy:5672"
       RabbitMqSettings:Consumer: api3
+      RabbitMqSettings:UserName: guest
+      RabbitMqSettings:Password: guest
+      # Saga
+      RabbitMqSettings:SagaUri: "amqp://guest:guest@otus-haproxy:5672"
+      RabbitMqSettings:SagaQueue: counters-queue
       # Настройки генерации токена авторизации
       JWTSettings:Key: "verystrongkeyforauthtoken"
       JWTSettings:Issuer: otus.social.network
@@ -391,13 +406,51 @@ services:
     container_name: otus-dialogs
     restart: always
     environment:
+       # Строка подключения к базе данных Postgres
+      DatabaseSettings:ConnStr: "Host=pgbouncer;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
       # Подключение к tarantool
       TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
-      TarantoolSettings:Space: ""
+      TarantoolSettings:Space: "posts"
+      # Rabbit
+      RabbitMqSettings:Uri: "rabbitmq://guest:guest@otus-haproxy:5672"
+      RabbitMqSettings:Consumer: dialogs
+      RabbitMqSettings:UserName: guest
+      RabbitMqSettings:Password: guest
+      # Saga
+      RabbitMqSettings:SagaUri: "amqp://guest:guest@otus-haproxy:5672"
+      RabbitMqSettings:SagaQueue: counters-queue
     user: "555:555"
     ports:
       - 5147:5147
     entrypoint: dotnet OtusDialogsGrpc.dll
+    networks:
+      - otus-network
+
+  otus-counters:
+    image: otus-counters-image
+    build:
+      context: ./webapi
+      dockerfile: ./Dockerfile.counters
+    container_name: otus-counters
+    restart: always
+    environment:
+      # Строка подключения к базе данных Postgres
+      DatabaseSettings:ConnStr: "Host=pgbouncer;Port=5432;Username=dbuser;Password=dbpassword;Database=otusdb;Pooling=true;"
+      # Подключение к tarantool
+      TarantoolSettings:ConnStr: "operator:123123@otus-tarantool:3301"
+      TarantoolSettings:Space: "posts"
+      # Rabbit
+      RabbitMqSettings:Uri: "rabbitmq://guest:guest@otus-haproxy:5672"
+      RabbitMqSettings:Consumer: counters
+      RabbitMqSettings:UserName: guest
+      RabbitMqSettings:Password: guest
+      # Saga
+      RabbitMqSettings:SagaUri: "amqp://guest:guest@otus-haproxy:5672"
+      RabbitMqSettings:SagaQueue: counters-queue
+    user: "555:555"
+    # ports:
+    #   - 5147:5147
+    entrypoint: dotnet OtusChatCounters.dll
     networks:
       - otus-network
 
