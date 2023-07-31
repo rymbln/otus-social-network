@@ -83,3 +83,23 @@ docker compose up -d otus-dialogs
 3. Запускаем rabbit `docker compose up -d otus-haproxy otus-rmq0 otus-rmq1 otus-rmq2`
 4. Запускаем tarantool `docker compose up -d otus-tarantool`
 5. Запускаем api `docker compose up -d otus-api-1 otus-api-2 otus-api-3 otus-dialogs otus-counters`
+6. В постман отправляем сообщение /api/Dialog/:userId/send
+
+https://github.com/rymbln/otus-social-network/tree/026-hw
+
+Сервис счетчиков otus-counters - обновляет счетчики в Tarantool после отправки сообщения
+Сервис диалогов otus-dialogs - сохраняет и удаляет сообщения
+Сервис приема запросов и отправки сообщений по webscoket - otus-web-api
+
+Описание SAGA https://github.com/rymbln/otus-social-network/blob/026-hw/webapi/OtusClasses/Sagas/SendMessageSaga.cs
+Используемые сообщения для SAGA https://github.com/rymbln/otus-social-network/blob/026-hw/webapi/OtusClasses/Sagas/Events/SendMessageSagaEvents.cs
+
+Порядок действий следующий:
+1. Пользователь отправляет запрос на создание нового сообщения, создается сообщение MessageCreatedEvent и запускается сага https://github.com/rymbln/otus-social-network/blob/026-hw/webapi/OtusWebApi/Controllers/DialogController.cs
+2. Сохраняем сообщение (SaveMessageEvent) с помощью otus-dialogs https://github.com/rymbln/otus-social-network/blob/026-hw/webapi/OtusDialogsGrpc/Handlers/SaveMessageEventHandler.cs
+3. Если сообщение не удалось сохранить, то отправляем пользователю PushMessageFailedEvent и завершаем сагу с помощью MessageFailEvent https://github.com/rymbln/otus-social-network/blob/026-hw/webapi/OtusWebApi/Handlers/PushMessageFailedEventHandler.cs
+4. Если сообщение удалось сохранить, то отправляем пуш адресату PushMessageEvent по вебсокету https://github.com/rymbln/otus-social-network/blob/026-hw/webapi/OtusWebApi/Handlers/PushMessageEventHandler.cs
+5. Запускаем обновление счетчиков UpdateCountersEvent https://github.com/rymbln/otus-social-network/blob/026-hw/webapi/OtusChatCounters/Handlers/UpdateCountsEventHandler.cs
+6. Если обновление счетчиков не удалось, запускаем компенсирующую транзакцию DeleteMessageEvent https://github.com/rymbln/otus-social-network/blob/026-hw/webapi/OtusDialogsGrpc/Handlers/DeleteMessageEventHandler.cs
+7. Если обновление счетчиков удалось, отправляем новые счетчики адресату PushCountersEvent https://github.com/rymbln/otus-social-network/blob/026-hw/webapi/OtusWebApi/Handlers/PushCountersEventHandler.cs
+8. Завершаем Сагу
