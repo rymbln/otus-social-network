@@ -77,3 +77,25 @@ docker compose up -d otus-dialogs
 9. Описание сервиса в webapi\OtusClasses\Proto\dialogs.proto
 
 
+### Задание Мониторинг и Алертинг
+
+1. Запускаем citus-postgres `docker compose up -d pgbouncer citus-master citus-manager citus-worker-1 citus-worker-2 citus-worker-3 citus-worker-4 citus-worker-5`
+2. Запускаем запрос из файла `postgres\create-tables.sql` чтобы создать нужные таблицы
+3. Запускаем rabbit `docker compose up -d otus-haproxy otus-rmq0 otus-rmq1 otus-rmq2`
+4. Запускаем tarantool `docker compose up -d otus-tarantool`
+5. Запускаем api `docker compose up -d otus-api-1 otus-api-2 otus-api-3 otus-web`
+6. Запускаем gRPC сервис с диалогами `docker compose up -d otus-dialogs`
+7. Запускаем мониторинг для сервисов `docker compose up -d otus-prometheus otus-grafana`
+8. Проверяем доступность метрик 
+   - Переходим на localhost:9090 . Выбираем Status -> Targets
+   ![prometheus-targets](./report/prometheus-targets.png)
+9. Проверяем дашборды
+    - Переходим на localhsot:3001. Логин, пароль стандартные - admin - admin
+    - Открываем дашборд ASP.NET Core - controller summary (Prometheus) и начинаем отправлять запросы
+   ![graphana](./report/grafana.png)
+
+10. Запускаем мониторинг сервера `docker compose -f docker-compose.zabbix.yml up -d`
+11. Добавляем конфигурацию агента 
+    ![zabbix-agent](./report/zabbix-agent.png)
+12. Проверяем дашборд агента
+    ![zabbix-dash](./report/zabbix-dash.png)

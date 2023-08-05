@@ -10,12 +10,19 @@
     <UserSecretsId>6165486a-0018-491f-b802-da7cfadcbe6f</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'https' " />
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'http' " />
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.49.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.3" />
     <PackageReference Include="progaudi.tarantool" Version="0.15.0" />
+    <PackageReference Include="prometheus-net" Version="8.0.1" />
+    <PackageReference Include="prometheus-net.AspNetCore" Version="8.0.1" />
+    <PackageReference Include="prometheus-net.AspNetCore.HealthChecks" Version="8.0.1" />
+    <PackageReference Include="prometheus-net.SystemMetrics" Version="2.0.0" />
+    <PackageReference Include="prometheus-net.AspNetCore.Grpc" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup>

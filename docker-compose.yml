@@ -413,6 +413,29 @@ services:
     networks:
       - otus-network
 
+  otus-prometheus:
+    image: otus-prometheus
+    container_name: otus-prometheus
+    build: 
+      context: ./prometheus
+      dockerfile: Dockerfile
+    ports:
+      - "9090:9090"
+    networks:
+      - otus-network
+
+  otus-grafana: 
+    image: otus-grafana
+    container_name: otus-grafana
+    build: 
+      context: ./grafana
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"   
+    networks:
+      - otus-network
+    depends_on:
+      - otus-prometheus
 networks:
   otus-network:
     name: otus-network

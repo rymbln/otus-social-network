@@ -19,7 +19,7 @@ using OtusSocialNetwork.Rabbitmq;
 using OtusSocialNetwork.Services;
 using OtusSocialNetwork.SignalHub;
 using OtusSocialNetwork.Tarantool;
-
+using Prometheus;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -45,15 +45,7 @@ public class Program
         // TODO: Delete
         builder.Services.AddSingleton<TimerManager>();
         builder.Services.AddHttpContextAccessor();
-        //builder.Services.AddControllers(options =>
-        //{
-        //    options.Filters.Add(typeof(ValidateModelStateAttribute));
-        //});
-        //    .AddJsonOptions(options =>
-        //{
-        //    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        //    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-        //});
+
 
         builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -239,6 +231,9 @@ public class Program
         app.MapControllers();
         app.MapHub<PostHub>("/ws/feed/news");
         app.MapHub<ChatHub>("/ws/feed/chat");
+
+        app.UseMetricServer();
+        app.UseHttpMetrics();
 
         app.Run();
 

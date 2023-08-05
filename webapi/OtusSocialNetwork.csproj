@@ -45,6 +45,12 @@
     <PackageReference Include="MassTransit" Version="8.0.16" />
     <PackageReference Include="MassTransit.AspNetCore" Version="7.3.1" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.8" />
+    <PackageReference Include="prometheus-net" Version="8.0.1" />
+    <PackageReference Include="prometheus-net.AspNetCore" Version="8.0.1" />
+    <PackageReference Include="prometheus-net.AspNetCore.HealthChecks" Version="8.0.1" />
+    <PackageReference Include="prometheus-net.SystemMetrics" Version="2.0.0" />
+    <PackageReference Include="prometheus-net.NetFramework.AspNet" Version="8.0.1" />
+    <PackageReference Include="prometheus-net.AspNet" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
