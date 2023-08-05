@@ -1,0 +1,155 @@
+version: '3.5'
+services:
+ zabbix-server:
+  image: zabbix/zabbix-server-pgsql:alpine-6.4-latest
+  ports:
+   - "10051:10051"
+  volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro 
+   - ./volumes/zabbix/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro
+   - ./volumes/zabbix/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
+   - ./volumes/zabbix/var/lib/zabbix/dbscripts:/var/lib/zabbix/dbscripts:ro
+   - ./volumes/zabbix/var/lib/zabbix/export:/var/lib/zabbix/export:rw
+   - ./volumes/zabbix/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
+   - ./volumes/zabbix/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ./volumes/zabbix/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+   - ./volumes/zabbix/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
+   - snmptraps:/var/lib/zabbix/snmptraps:rw
+  deploy:
+   resources:
+    limits:
+      memory: 1G
+    reservations:
+      memory: 512M
+  env_file:
+   - ./zabbix/env_vars/.env_db_pgsql
+   - ./zabbix/env_vars/.env_srv
+  secrets:
+   - POSTGRES_USER
+   - POSTGRES_PASSWORD
+  depends_on:
+   - postgres-server
+  networks:
+   zbx_net_backend:
+     aliases:
+      - zabbix-server
+      - zabbix-server-pgsql
+      - zabbix-server-alpine-pgsql
+      - zabbix-server-pgsql-alpine
+   zbx_net_frontend:
+  stop_grace_period: 30s
+  sysctls:
+   - net.ipv4.ip_local_port_range=1024 65000
+   - net.ipv4.conf.all.accept_redirects=0
+   - net.ipv4.conf.all.secure_redirects=0
+   - net.ipv4.conf.all.send_redirects=0
+
+ zabbix-web-nginx-pgsql:
+  image: zabbix/zabbix-web-nginx-pgsql:alpine-6.4-latest
+  ports:
+   - "8080:8080"
+   - "8443:8443"
+  volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro
+   - ./volumes/zabbix/etc/ssl/nginx:/etc/ssl/nginx:ro
+   - ./volumes/zabbix/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
+  deploy:
+   resources:
+    limits:
+      memory: 512M
+    reservations:
+      memory: 256M
+  env_file:
+   - ./zabbix/env_vars/.env_db_pgsql
+   - ./zabbix/env_vars/.env_web
+  secrets:
+   - POSTGRES_USER
+   - POSTGRES_PASSWORD
+  depends_on:
+   - postgres-server
+   - zabbix-server
+  healthcheck:
+   test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+   interval: 10s
+   timeout: 5s
+   retries: 3
+   start_period: 30s
+  networks:
+   zbx_net_backend:
+    aliases:
+     - zabbix-web-nginx-pgsql
+     - zabbix-web-nginx-alpine-pgsql
+     - zabbix-web-nginx-pgsql-alpine
+   zbx_net_frontend:
+  stop_grace_period: 10s
+  sysctls:
+   - net.core.somaxconn=65535
+
+ zabbix-agent:
+  image: zabbix/zabbix-agent:alpine-6.4-latest
+  ports:
+   - "10050:10050"
+  volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro
+   - ./volumes/zabbix/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
+   - ./volumes/zabbix/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
+   - ./volumes/zabbix/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ./volumes/zabbix/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+  env_file:
+   - ./zabbix/env_vars/.env_agent
+  privileged: true
+  pid: "host"
+  networks:
+   zbx_net_backend:
+    aliases:
+     - zabbix-agent
+     - zabbix-agent-passive
+     - zabbix-agent-alpine
+
+ postgres-server:
+  image: postgres:14-alpine
+  volumes:
+   - ./volumes/zabbix/var/lib/postgresql/data:/var/lib/postgresql/data:rw
+  env_file:
+   - ./zabbix/env_vars/.env_db_pgsql
+  secrets:
+   - POSTGRES_USER
+   - POSTGRES_PASSWORD
+  stop_grace_period: 1m
+  networks:
+   zbx_net_backend:
+    aliases:
+     - postgres-server
+     - pgsql-server
+     - pgsql-database
+
+networks:
+  zbx_net_frontend:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.16.238.0/24
+  zbx_net_backend:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+    internal: true
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.16.239.0/24
+
+volumes:
+  snmptraps:
+
+secrets:
+  POSTGRES_USER:
+    file: ./zabbix/env_vars/.POSTGRES_USER
+  POSTGRES_PASSWORD:
+    file: ./zabbix/env_vars/.POSTGRES_PASSWORD
