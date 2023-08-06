@@ -1,9 +1,85 @@
-<mxfile host="app.diagrams.net" modified="2023-08-06T21:00:54.775Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15" version="21.6.6" etag="a5QL-6F4v5a1RvOVAQC6" type="github">
+<mxfile host="app.diagrams.net" modified="2023-08-06T21:29:46.493Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15" etag="VPz_9P14w5ViFkmQeOWu" version="21.6.6" type="github">
   <diagram name="Page-1" id="q-ARzgoAae-MjoLzb_5H">
-    <mxGraphModel>
+    <mxGraphModel dx="636" dy="391" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="5VuOCVOYMruQExuFPeUD-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fillColor=#f5f5f5;strokeColor=#666666;" edge="1" parent="1" source="5VuOCVOYMruQExuFPeUD-1" target="5VuOCVOYMruQExuFPeUD-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-1" value="Протоколы и препараты пользователя" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;spacingLeft=80;" vertex="1" parent="1">
+          <mxGeometry x="200" y="200" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-2" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/.NET_Core_Logo.svg/2048px-.NET_Core_Logo.svg.png;" vertex="1" parent="1">
+          <mxGeometry x="210" y="210" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-5" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="200" y="420" width="60" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-3" value="" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="5VuOCVOYMruQExuFPeUD-5">
+          <mxGeometry width="60" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-4" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn-icons-png.flaticon.com/512/5968/5968342.png;" vertex="1" parent="5VuOCVOYMruQExuFPeUD-5">
+          <mxGeometry x="7.5" y="37.5" width="45" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-6" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="270" y="420" width="60" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-7" value="" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="5VuOCVOYMruQExuFPeUD-6">
+          <mxGeometry width="60" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-8" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn-icons-png.flaticon.com/512/5968/5968342.png;" vertex="1" parent="5VuOCVOYMruQExuFPeUD-6">
+          <mxGeometry x="7.5" y="37.5" width="45" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-9" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="340" y="420" width="60" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-10" value="" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="5VuOCVOYMruQExuFPeUD-9">
+          <mxGeometry width="60" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-11" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn-icons-png.flaticon.com/512/5968/5968342.png;" vertex="1" parent="5VuOCVOYMruQExuFPeUD-9">
+          <mxGeometry x="7.5" y="37.5" width="45" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-13" value="Actor" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="285" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-14" value="" style="shape=flexArrow;endArrow=classic;startArrow=classic;html=1;rounded=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" edge="1" parent="1" source="5VuOCVOYMruQExuFPeUD-1">
+          <mxGeometry width="100" height="100" relative="1" as="geometry">
+            <mxPoint x="210" y="190" as="sourcePoint" />
+            <mxPoint x="300" y="80" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-15" value="REST&lt;br&gt;CRUD" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="5VuOCVOYMruQExuFPeUD-14">
+          <mxGeometry x="0.1833" y="3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;fillColor=#f5f5f5;strokeColor=#666666;" edge="1" parent="1" source="5VuOCVOYMruQExuFPeUD-16" target="5VuOCVOYMruQExuFPeUD-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-16" value="Кеш данных пользователя" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;spacingLeft=80;align=left;" vertex="1" parent="1">
+          <mxGeometry x="200" y="330" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-22" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://upload.wikimedia.org/wikipedia/ru/2/27/Logo-Tarantool-2023.png;" vertex="1" parent="1">
+          <mxGeometry x="224" y="337" width="46" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-25" value="Взаимодействие с другими пользователями" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;spacingLeft=80;" vertex="1" parent="1">
+          <mxGeometry x="480" y="200" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-26" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/.NET_Core_Logo.svg/2048px-.NET_Core_Logo.svg.png;" vertex="1" parent="1">
+          <mxGeometry x="490" y="210" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-27" value="" style="shape=flexArrow;endArrow=classic;startArrow=classic;html=1;rounded=0;fillColor=#dae8fc;strokeColor=#6c8ebf;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="5VuOCVOYMruQExuFPeUD-25" target="5VuOCVOYMruQExuFPeUD-13">
+          <mxGeometry width="100" height="100" relative="1" as="geometry">
+            <mxPoint x="310" y="210" as="sourcePoint" />
+            <mxPoint x="310" y="90" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5VuOCVOYMruQExuFPeUD-28" value="REST&lt;br&gt;WEBSOCKET" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="5VuOCVOYMruQExuFPeUD-27">
+          <mxGeometry x="0.1833" y="3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
